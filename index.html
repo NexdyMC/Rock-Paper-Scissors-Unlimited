@@ -136,14 +136,14 @@
   </button>
 </header>
 
-<main class="min-h-screen mx-auto px-4 pt-10 pb-10 flex justify-center items-center">
+<main class="max-w-5xl mx-auto px-4 pt-20 pb-10">
 
   <!-- ===================================================== -->
   <!-- START SCREEN -->
   <!-- ===================================================== -->
   <section id="start_screen" class="screen active">
     <div class="text-center mb-12">
-      <h1 class="display-font text-5xl md:text-7xl max-w-2xl leading-none">
+      <h1 class="display-font text-5xl md:text-7xl leading-none">
         BATU GUNTING KERTAS <span class="text-corner1">UNLIMITED</span>
       </h1>
       <p class="mt-4 text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
@@ -175,11 +175,25 @@
           class="w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
       </div>
       <div>
-        <label class="block text-sm font-semibold mb-1 text-neutral-500 dark:text-neutral-400">Durasi Timer</label>
+        <label class="block text-sm font-semibold mb-1 text-neutral-500 dark:text-neutral-400">Durasi Waktu Singleplayer</label>
         <select id="settingsTimerDuration" class="w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
           <option value="60">1 Menit</option>
           <option value="120">2 Menit</option>
+          <option value="180">3 Menit</option>
         </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-2 text-neutral-500 dark:text-neutral-400">Durasi Waktu Multiplayer</label>
+        <div id="chessTimeOptions" class="grid grid-cols-3 gap-2">
+          <button type="button" data-mins="1" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">1 Menit</button>
+          <button type="button" data-mins="2" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">2 Menit</button>
+          <button type="button" data-mins="3" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">3 Menit</button>
+          <button type="button" data-mins="5" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">5 Menit</button>
+          <button type="button" data-mins="10" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">10 Menit</button>
+          <button type="button" data-mins="custom" class="chess-time-opt px-2 py-2 rounded-lg border-2 border-neutral-300 dark:border-neutral-700 text-xs font-semibold transition">Custom</button>
+        </div>
+        <input id="chessTimeCustomInput" type="number" min="1" step="1" placeholder="Menit custom (mis. 7)"
+          class="hidden mt-2 w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
       </div>
       <div class="flex items-center justify-between px-1">
         <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">Mode Gelap</span>
@@ -235,9 +249,9 @@
   <!-- ===================================================== -->
   <section id="play_screen" class="screen">
 
-    <!-- Timer & Skor -->
+    <!-- Timer (arcade, singleplayer) & Skor -->
     <div class="flex items-center justify-center gap-6 mb-6">
-      <div class="mono-font text-sm px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700">
+      <div id="globalTimerWrap" class="mono-font text-sm px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700">
         ⏱️ <span id="timerDisplay">60</span>s
       </div>
       <div id="scoreDisplay" class="mono-font text-sm px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700"></div>
@@ -247,7 +261,10 @@
     <div class="relative grid grid-cols-1 md:grid-cols-2 gap-6 items-center mb-8">
 
       <div id="cardChampion" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner1 shadow-xl">
-        <span class="mono-font text-xs uppercase text-corner1 font-semibold">Juara Bertahan</span>
+        <div class="flex items-center justify-between gap-2">
+          <span class="mono-font text-xs uppercase text-corner1 font-semibold">Juara Bertahan</span>
+          <span id="clockP1" class="hidden mono-font text-sm font-bold px-2.5 py-0.5 rounded-full border-2 border-corner1">01:00</span>
+        </div>
         <p id="championName" class="display-font text-3xl mt-1 break-words">Input Kosong</p>
         <p id="championScore" class="mono-font text-xs mt-1 text-neutral-500 dark:text-neutral-400"></p>
       </div>
@@ -260,7 +277,10 @@
       </div>
 
       <div id="cardChallenger" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner2 shadow-xl">
-        <span class="mono-font text-xs uppercase text-corner2 font-semibold">Penantang</span>
+        <div class="flex items-center justify-between gap-2">
+          <span class="mono-font text-xs uppercase text-corner2 font-semibold">Penantang</span>
+          <span id="clockP2" class="hidden mono-font text-sm font-bold px-2.5 py-0.5 rounded-full border-2 border-corner2">01:00</span>
+        </div>
         <p id="challengerName" class="display-font text-3xl mt-1 break-words">?</p>
         <p id="challengerHint" class="mono-font text-xs mt-1 text-neutral-500 dark:text-neutral-400"></p>
       </div>
@@ -321,7 +341,7 @@
   <!-- FINIS SCREEN -->
   <!-- ===================================================== -->
   <section id="finis_screen" class="screen text-center">
-    <h2 class="display-font text-3xl text-gold mb-2">WAKTU HABIS!</h2>
+    <h2 id="finisTitle" class="display-font text-3xl text-gold mb-2">WAKTU HABIS!</h2>
     <p class="display-font text-5xl md:text-6xl mb-6" id="finalWinnerText">-</p>
     <div id="finalScoreBoard" class="mono-font text-sm mb-8 space-y-1"></div>
     <div class="max-w-sm mx-auto grid gap-3">
@@ -347,6 +367,7 @@ const DUEL_CACHE_KEY = 'bgku_duel_cache';
 const COOLDOWN_KEY = 'bgku_ai_cooldowns';
 const COOLDOWN_DURATION_MS = 90 * 1000;
 const POWER_SCORE_KEY = 'bgku_power_scores';
+const CHESS_TIME_KEY = 'bgku_time_setting'; // durasi waktu catur multiplayer, disimpan dalam DETIK
 
 const PROVIDERS_META = [
   { id: 'gemini', label: 'Gemini' },
@@ -387,6 +408,13 @@ const resultReason = document.getElementById('resultReason');
 const resultProvider = document.getElementById('resultProvider');
 const historyList = document.getElementById('historyList');
 
+const globalTimerWrap = document.getElementById('globalTimerWrap');
+const clockP1El = document.getElementById('clockP1');
+const clockP2El = document.getElementById('clockP2');
+const chessTimeOptions = document.getElementById('chessTimeOptions');
+const chessTimeCustomInput = document.getElementById('chessTimeCustomInput');
+const CHESS_PRESET_MINUTES = [1, 2, 3, 5, 10];
+
 /* ---------- STATE GAME ---------- */
 let state = {
   mode: null,          // 'single' | 'multi'
@@ -395,6 +423,11 @@ let state = {
   timerRemaining: 60,
   timerInterval: null,
   roundBusy: false,
+  // ---- Chess Clock (khusus multiplayer) ----
+  timeP1: 60,
+  timeP2: 60,
+  chessInterval: null,
+  activeChessPlayer: null, // 'p1' | 'p2' | null (null = pause)
 };
 
 /* =========================================================================
@@ -717,6 +750,84 @@ function stopTimer() {
 }
 
 /* =========================================================================
+   CHESS CLOCK (khusus MULTIPLAYER) — dua timer terpisah, bergantian jalan
+   ========================================================================= */
+function getChessDurationSeconds() {
+  const saved = parseInt(localStorage.getItem(CHESS_TIME_KEY) || '60', 10);
+  return Number.isFinite(saved) && saved > 0 ? saved : 60;
+}
+function formatClock(totalSeconds) {
+  const s = Math.max(0, totalSeconds);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+}
+function renderChessClocks() {
+  clockP1El.textContent = formatClock(state.timeP1);
+  clockP2El.textContent = formatClock(state.timeP2);
+
+  clockP1El.classList.toggle('text-red-500', state.timeP1 <= 10);
+  clockP1El.classList.toggle('animate-pulse', state.timeP1 <= 10);
+  clockP2El.classList.toggle('text-red-500', state.timeP2 <= 10);
+  clockP2El.classList.toggle('animate-pulse', state.timeP2 <= 10);
+
+  // Highlight jam milik pemain yang sedang jalan.
+  clockP1El.classList.toggle('bg-corner1', state.activeChessPlayer === 'p1');
+  clockP1El.classList.toggle('text-white', state.activeChessPlayer === 'p1' && state.timeP1 > 10);
+  clockP2El.classList.toggle('bg-corner2', state.activeChessPlayer === 'p2');
+  clockP2El.classList.toggle('text-white', state.activeChessPlayer === 'p2' && state.timeP2 > 10);
+}
+// Menyiapkan & menampilkan kedua jam di awal pertandingan multiplayer.
+function initChessClocks() {
+  clearInterval(state.chessInterval);
+  const dur = getChessDurationSeconds();
+  state.timeP1 = dur;
+  state.timeP2 = dur;
+  state.activeChessPlayer = null;
+  clockP1El.classList.remove('hidden');
+  clockP2El.classList.remove('hidden');
+  renderChessClocks();
+}
+// Menjalankan jam milik `player` ('p1' | 'p2'), otomatis clearInterval jam sebelumnya.
+function startChessTimer(player) {
+  clearInterval(state.chessInterval);
+  state.activeChessPlayer = player;
+  renderChessClocks();
+  state.chessInterval = setInterval(() => {
+    if (state.activeChessPlayer === 'p1') state.timeP1--;
+    else if (state.activeChessPlayer === 'p2') state.timeP2--;
+    renderChessClocks();
+
+    if (state.timeP1 <= 0) {
+      triggerChessTimeOut('p1');
+    } else if (state.timeP2 <= 0) {
+      triggerChessTimeOut('p2');
+    }
+  }, 1000);
+}
+// Pause KEDUA jam tanpa mereset siapa yang seharusnya jalan berikutnya —
+// dipakai saat menunggu respons AI Juri supaya waktu tidak habis saat itu.
+function pauseChessTimer() {
+  clearInterval(state.chessInterval);
+  state.chessInterval = null;
+}
+function stopChessClocks() {
+  clearInterval(state.chessInterval);
+  state.chessInterval = null;
+  state.activeChessPlayer = null;
+  clockP1El.classList.add('hidden');
+  clockP2El.classList.add('hidden');
+}
+// Pemain yang waktunya habis SAAT giliran dia mengetik langsung kalah.
+function triggerChessTimeOut(loserKey) {
+  clearInterval(state.chessInterval);
+  state.chessInterval = null;
+  const loserName = loserKey === 'p1' ? state.nameP1 : state.nameP2;
+  const winnerName = loserKey === 'p1' ? state.nameP2 : state.nameP1;
+  goToFinisTimeOut(loserName, winnerName);
+}
+
+/* =========================================================================
    MODE SINGLEPLAYER
    ========================================================================= */
 document.getElementById('btnGoSingle').addEventListener('click', () => {
@@ -743,6 +854,10 @@ document.getElementById('btnStartSingle').addEventListener('click', () => {
   singleInputArea.classList.remove('hidden');
   multiStep1Area.classList.add('hidden');
   multiStep2Area.classList.add('hidden');
+
+  // Mode singleplayer pakai timer arcade global; jam catur (multiplayer) dimatikan.
+  stopChessClocks();
+  globalTimerWrap.classList.remove('hidden');
 
   showScreen('play_screen');
   startTimer();
@@ -806,8 +921,13 @@ document.getElementById('btnStartMulti').addEventListener('click', () => {
   multiStep1Area.classList.remove('hidden');
   document.getElementById('multiStep1Label').textContent = `Giliran ${n1}`;
 
+  // Mode multiplayer pakai Chess Clock per-pemain; timer arcade global dimatikan.
+  stopTimer();
+  globalTimerWrap.classList.add('hidden');
+
   showScreen('play_screen');
-  startTimer();
+  initChessClocks();
+  startChessTimer('p1'); // Player 1 mulai duluan
 });
 
 document.getElementById('btnMultiLock1').addEventListener('click', () => {
@@ -817,6 +937,8 @@ document.getElementById('btnMultiLock1').addEventListener('click', () => {
   multiStep1Area.classList.add('hidden');
   multiStep2Area.classList.remove('hidden');
   document.getElementById('multiStep2Label').textContent = `Giliran ${state.nameP2}`;
+  // clearInterval jam P1, otomatis mulai jam P2 (satu setInterval aktif per waktu).
+  startChessTimer('p2');
 });
 
 document.getElementById('btnMultiAttack2').addEventListener('click', () => runMultiRound());
@@ -832,6 +954,10 @@ async function runMultiRound() {
   challengerNameEl.textContent = atk2;
   resetRonde();
 
+  // Fairness: begitu Player 2 menyerang & layar loading AI Juri muncul,
+  // KEDUA jam catur wajib berhenti — jangan sampai waktu habis saat menunggu backend.
+  pauseChessTimer();
+
   const decision = await getJuryDecision(atk1, atk2);
   renderDecision(atk1, atk2, decision, cardChampion, cardChallenger);
 
@@ -844,6 +970,9 @@ async function runMultiRound() {
   multiAttackInput1.value = '';
   multiAttackInput2.value = '';
   document.getElementById('multiStep1Label').textContent = `Giliran ${state.nameP1}`;
+
+  // Ronde berikutnya dimulai → lanjutkan (resume) jam catur, giliran Player 1 lagi.
+  startChessTimer('p1');
   state.roundBusy = false;
 }
 
@@ -871,9 +1000,14 @@ function renderDecision(nameA, nameB, decision, cardA, cardB) {
    FINIS SCREEN
    ========================================================================= */
 function goToFinis() {
+  // Matikan kedua jenis timer supaya tidak ada interval yang berjalan ganda.
   stopTimer();
+  stopChessClocks();
+
   const board = document.getElementById('finalScoreBoard');
   const winnerText = document.getElementById('finalWinnerText');
+  const titleEl = document.getElementById('finisTitle');
+  titleEl.textContent = 'WAKTU HABIS!';
   board.innerHTML = '';
 
   if (state.mode === 'single') {
@@ -896,6 +1030,33 @@ function goToFinis() {
   showScreen('finis_screen');
 }
 
+// Finis khusus Time Out Chess Clock: satu pemain kehabisan waktu saat mengetik.
+function goToFinisTimeOut(loserName, winnerName) {
+  stopTimer();
+  stopChessClocks();
+
+  const board = document.getElementById('finalScoreBoard');
+  const winnerText = document.getElementById('finalWinnerText');
+  const titleEl = document.getElementById('finisTitle');
+  board.innerHTML = '';
+
+  titleEl.textContent = 'WAKTU HABIS!';
+  winnerText.textContent = winnerName;
+
+  const line = document.createElement('p');
+  line.textContent = `${winnerName} menang karena ${loserName} kelamaan mikir!`;
+  board.appendChild(line);
+
+  const l1 = document.createElement('p');
+  l1.textContent = `${state.nameP1}: ${state.scoreP1} poin`;
+  const l2 = document.createElement('p');
+  l2.textContent = `${state.nameP2}: ${state.scoreP2} poin`;
+  board.appendChild(l1);
+  board.appendChild(l2);
+
+  showScreen('finis_screen');
+}
+
 document.getElementById('btnPlayAgain').addEventListener('click', () => {
   if (state.mode === 'single') showScreen('singleplayer_screen');
   else showScreen('multiplayer_screen');
@@ -908,6 +1069,7 @@ document.getElementById('btnBackToMenuFromFinis').addEventListener('click', () =
 document.getElementById('btnGoSettings').addEventListener('click', () => {
   document.getElementById('settingsPlayerName').value = localStorage.getItem(PLAYER_NAME_KEY) || '';
   document.getElementById('settingsTimerDuration').value = localStorage.getItem(TIMER_DURATION_KEY) || '60';
+  renderChessTimeSelection();
   showScreen('settings_screen');
 });
 document.getElementById('btnBackFromSettings').addEventListener('click', () => showScreen('start_screen'));
@@ -916,6 +1078,48 @@ document.getElementById('settingsPlayerName').addEventListener('change', e => {
 });
 document.getElementById('settingsTimerDuration').addEventListener('change', e => {
   localStorage.setItem(TIMER_DURATION_KEY, e.target.value);
+});
+
+/* ---------- Pilihan Durasi Waktu Catur (Multiplayer) ---------- */
+function selectChessTimeMinutes(mins) {
+  localStorage.setItem(CHESS_TIME_KEY, String(Math.round(mins * 60)));
+  renderChessTimeSelection();
+}
+function renderChessTimeSelection() {
+  const totalSec = getChessDurationSeconds();
+  const mins = totalSec / 60;
+  const isPreset = CHESS_PRESET_MINUTES.includes(mins);
+
+  chessTimeOptions.querySelectorAll('.chess-time-opt').forEach(btn => {
+    const val = btn.dataset.mins;
+    const active = val === 'custom' ? !isPreset : Number(val) === mins;
+    btn.classList.toggle('bg-gold', active);
+    btn.classList.toggle('border-gold', active);
+    btn.classList.toggle('text-neutral-900', active);
+  });
+
+  if (!isPreset) {
+    chessTimeCustomInput.classList.remove('hidden');
+    chessTimeCustomInput.value = mins;
+  } else {
+    chessTimeCustomInput.classList.add('hidden');
+  }
+}
+chessTimeOptions.querySelectorAll('.chess-time-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.mins;
+    if (val === 'custom') {
+      chessTimeCustomInput.classList.remove('hidden');
+      chessTimeCustomInput.focus();
+      renderChessTimeSelection();
+    } else {
+      selectChessTimeMinutes(Number(val));
+    }
+  });
+});
+chessTimeCustomInput.addEventListener('change', () => {
+  const val = Math.max(1, parseInt(chessTimeCustomInput.value, 10) || 1);
+  selectChessTimeMinutes(val);
 });
 
 /* =========================================================================

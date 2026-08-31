@@ -1,154 +1,179 @@
+# "Batu Gunting Kertas Unlimited" — Lanjutan Development (v2)
+
+Bertindaklah sebagai **Senior Web Developer dan Game Designer**. Ini adalah **kelanjutan** dari project game web interaktif "Batu Gunting Kertas Unlimited" — kode `index.html` dan `/api/juri.js` LENGKAP sudah pernah dibuat oleh AI lain di sesi sebelumnya (spesifikasi awalnya disertakan di bagian bawah dokumen ini sebagai `docsgame_original.md`). Dokumen ini merangkum **seluruh fitur yang SUDAH SELESAI diimplementasikan**, plus **dua pembaruan besar terbaru** yang sudah masuk ke kode. Pahami dulu seluruh konteks di bawah sebelum melanjutkan pekerjaan apa pun, dan JANGAN mengulang dari nol — lanjutkan dari state kode yang sudah ada.
+
+---
+
+## 0. Ringkasan Status Saat Ini
+
+- `index.html`: SPA lengkap (HTML + Tailwind CDN + Vanilla JS), sudah mengimplementasikan seluruh spesifikasi awal (7 layar, dark/light mode, caching duel, cooldown provider, power score, typewriter, dsb) **DITAMBAH** sistem Chess Clock multiplayer dan sistem giliran dinamis "Winner Goes First" (dijelaskan di bagian 2 & 3 di bawah).
+- `/api/juri.js`: Serverless Function Vercel, fallback 3 provider (1 Gemini + 2 Groq), TIDAK berubah dari versi awal — masih valid dan tidak perlu disentuh kecuali ada requirement backend baru.
+- `package.json`: `{ "type": "module" }` supaya `export default` di `api/juri.js` jalan di Vercel.
+
+Kalau ingin melanjutkan development, **lampirkan file `index.html` dan `api/juri.js` yang sudah jadi** sebagai referensi kode aktual, lalu gunakan dokumen ini sebagai konteks spesifikasi/keputusan desain yang sudah disepakati.
+
+---
+
+## 1. Fitur yang SUDAH SELESAI dari Spesifikasi Awal
+
+Semua poin di `docsgame_original.md` (bagian bawah dokumen ini) sudah diimplementasikan penuh, termasuk bagian yang tadinya ditandai "belum selesai":
+
+- `#championScore` dan `#challengerHint` **sudah** diisi otomatis oleh `updateChampionScoreDisplay()` dan `updateChallengerHint()` (dipanggil saat ronde baru mulai & saat user mengetik nama penantang).
+- Tombol 🗑️ di header **khusus** reset cooldown provider AI (`clearAllCooldowns()`). Reset Power Score dipisah jadi tombol sendiri di `settings_screen` ("🏆 Hapus Semua Skor Kekuatan Tersimpan" → `clearAllPowerScores()`), karena kedua data ini beda konsep (status sibuk vs skor permanen).
+- Sistem cooldown localStorage disambungkan ke backend lewat field `providerOrder` (dikirim frontend ke `/api/juri`) dan `failedProviders` / `providerId` (dibalikin backend), supaya urutan "provider bebas dulu" benar-benar dipakai backend (localStorage sendiri tidak bisa diakses di serverless function).
+
+---
+
+## 2. FITUR BARU #1 — Sistem Chess Clock (Waktu Catur) Multiplayer
+
+**Hanya berlaku untuk mode Multiplayer.** Mode Singleplayer tetap pakai timer arcade global (hitung mundur satu arah, dari `settingsTimerDuration`, elemen `#globalTimerWrap` + `#timerDisplay`).
+
+### 2.1 UI
+- Timer arcade global (`#globalTimerWrap`) di-`hidden` saat mode multiplayer aktif; sebaliknya disembunyikan lagi di singleplayer.
+- Dua elemen jam terpisah, masing-masing ditempel di **header kartu pemiliknya** (bukan bar terpisah di atas), supaya otomatis rapi di mobile (kartu stack vertikal, jam ikut nempel) maupun desktop (grid 2 kolom):
+  - `#clockP1` di dalam `#cardChampion` (kartu merah, `corner1`).
+  - `#clockP2` di dalam `#cardChallenger` (kartu biru, `corner2`).
+- Kedua elemen jam default `class="hidden"`, di-`classList.remove('hidden')` oleh `initChessClocks()` saat multiplayer dimulai, dan `classList.add('hidden')` lagi oleh `stopChessClocks()` saat match berakhir/kembali ke menu.
+- **Efek waktu kritis:** kalau sisa waktu ≤ 10 detik → `text-red-500 animate-pulse` otomatis ditambahkan lewat `renderChessClocks()`.
+- **Highlight jam aktif:** jam milik pemain yang sedang jalan diberi `bg-corner1`/`bg-corner2` + `text-white` (dilepas otomatis kalau waktunya sudah kritis, supaya warna merah peringatan tidak ketiban warna solid).
+
+### 2.2 Logika JS (state & fungsi kunci)
+```js
+// state tambahan
+state.timeP1 = 60; state.timeP2 = 60;
+state.chessInterval = null;
+state.activeChessPlayer = null; // 'p1' | 'p2' | null
+
+getChessDurationSeconds()   // baca localStorage CHESS_TIME_KEY, default 60
+formatClock(totalSeconds)   // -> "MM:SS"
+renderChessClocks()         // update teks + class warna kedua jam
+initChessClocks()           // reset kedua waktu ke durasi setting, tampilkan elemen jam
+startChessTimer(player)     // clearInterval lama lalu mulai interval baru utk 'p1'/'p2' — HANYA SATU interval aktif kapan pun
+pauseChessTimer()           // clearInterval tanpa reset activeChessPlayer — dipakai saat menunggu AI Juri
+stopChessClocks()           // clearInterval + sembunyikan kedua elemen jam — dipakai saat match selesai/kembali ke menu
+triggerChessTimeOut(loserKey) // dipanggil dari dalam interval saat waktu = 0 saat giliran loserKey
+```
+- **Fairness rule (PENTING, sudah diimplementasikan):** begitu pemain kedua di setiap ronde menekan "Serang!", `pauseChessTimer()` dipanggil SEBELUM `await getJuryDecision(...)`. Ini memastikan kedua jam berhenti total selama loading/fetch AI Juri (termasuk kalau butuh fallback multi-provider yang lambat), lalu jam pemain yang berhak jalan duluan di ronde berikutnya di-resume via `startChessTimer(...)` di akhir alur (lihat bagian 3, fungsi `prepareMultiRoundTurnOrder()`).
+- **Time Out = kalah otomatis:** kalau `state.timeP1` atau `state.timeP2` menyentuh 0 SAAT giliran pemain itu sedang mengetik, `triggerChessTimeOut(loserKey)` langsung menghentikan interval dan memanggil `goToFinisTimeOut(loserName, winnerName)` — layar finis khusus dengan judul tetap "WAKTU HABIS!" dan pesan: `"${winnerName} menang karena ${loserName} kelamaan mikir!"`.
+- Untuk menghindari bug "timer berjalan ganda", **setiap** titik keluar dari match (`goToFinis()` dan `goToFinisTimeOut()`) memanggil **KEDUA** `stopTimer()` (arcade) dan `stopChessClocks()` (chess clock) tanpa syarat, apa pun mode yang sedang aktif.
+
+### 2.3 Pengaturan Durasi (Settings Screen)
+- Section baru di `settings_screen`: grup 6 tombol toggle (`.chess-time-opt`, `data-mins="1|2|3|5|10|custom"`) + `#chessTimeCustomInput` (`type="number"`, muncul saat "Custom" dipilih atau saat durasi tersimpan bukan salah satu preset).
+- Disimpan di `localStorage` key **`bgku_time_setting`** (konstanta `CHESS_TIME_KEY`), **dalam satuan DETIK** (bukan menit) supaya langsung kompatibel dipakai `getChessDurationSeconds()`.
+- `renderChessTimeSelection()` menyorot tombol yang aktif (`bg-gold border-gold text-neutral-900`) dan menyinkronkan tampilan input custom, dipanggil setiap kali layar Settings dibuka DAN setiap kali user memilih opsi baru.
+- Timer arcade singleplayer (`settingsTimerDuration`, key `bgku_timer_duration`) TETAP terpisah dan tidak berubah — cuma opsi 1/2 menit seperti semula, karena hanya dipakai singleplayer.
+
+---
+
+## 3. FITUR BARU #2 — Label Dinamis & Giliran "Winner Goes First" (Khusus Multiplayer)
+
+**Singleplayer sama sekali tidak terdampak** — kartu di singleplayer tetap berlabel statis "Juara Bertahan" / "Penantang" (uppercase).
+
+### 3.1 Label Kartu Dinamis
+- Span label di header kartu sekarang punya id: `#cardLabelP1` (merah) dan `#cardLabelP2` (biru). Defaultnya (HTML awal / dipakai saat singleplayer) tetap teks statis "Juara Bertahan" / "Penantang" dengan class `uppercase`.
+- Saat `btnStartMulti` diklik:
+  ```js
+  cardLabelP1.classList.remove('uppercase');
+  cardLabelP2.classList.remove('uppercase');
+  cardLabelP1.textContent = `Player 1 : ${n1}`;
+  cardLabelP2.textContent = `Player 2 : ${n2}`;
+  ```
+- Saat `btnStartSingle` diklik, pastikan label dikembalikan ke default statis + `uppercase` (supaya kalau user habis main multiplayer lalu balik ke singleplayer, label tidak nyangkut format "Player 1 : ...").
+- Nama besar (font Anton, `#championName`/`#challengerName`) tetap menampilkan **teks serangan yang sedang diketik** per ronde (perilaku lama tidak berubah) — sebelum ronde pertama dimulai, keduanya diisi username P1/P2 sebagai placeholder awal.
+
+### 3.2 Sistem Giliran Dinamis (Winner Goes First)
+State baru:
+```js
+state.firstTurnPlayer = 'p1';  // siapa yang wajib mengetik duluan ronde ini
+state.stepPlayerA = null;      // = firstTurnPlayer, dipetakan tiap awal ronde
+state.stepPlayerB = null;      // lawan dari stepPlayerA
+```
+Aturan:
+- **Ronde 1:** `state.firstTurnPlayer = 'p1'` (di-set saat `btnStartMulti`).
+- **Ronde 2+:** setelah `getJuryDecision()` selesai dan pemenang ronde diketahui, `state.firstTurnPlayer` di-update ke `winnerKey` (`'p1'` atau `'p2'`, dicocokkan dari `decision.winner` vs `atk1`/`atk2`).
+- **Kalau seri / winner tidak match keduanya** (`winnerKey === null` — edge case, jarang terjadi karena backend selalu memaksa `winner` jadi salah satu kandidat, tapi tetap dijaga): `state.firstTurnPlayer` **TIDAK diubah** (tetap sama seperti ronde sebelumnya).
+
+Fungsi kunci — `prepareMultiRoundTurnOrder()` (dipanggil di awal match & di akhir setiap ronde, MENGGANTIKAN kode reset form yang lama):
+```js
+function prepareMultiRoundTurnOrder() {
+  const first = state.firstTurnPlayer;
+  const second = first === 'p1' ? 'p2' : 'p1';
+  state.stepPlayerA = first;
+  state.stepPlayerB = second;
+
+  resetRonde();               // bersihkan ring pemenang, hasil panel, dst (fungsi lama, tidak berubah)
+  // reset & tampilkan form step 1 untuk `first`, sembunyikan step 2
+  // set label + placeholder + warna (applyTurnColor) sesuai `first`
+  // startChessTimer(first)   // resume jam catur pemain pertama ronde baru
+}
+```
+- Form step 1 (`#multiStep1Area` / `#multiAttackInput1`) dan step 2 (`#multiStep2Area` / `#multiAttackInput2`) **tidak lagi hardcode "milik" Player 1/Player 2** — sekarang murni **posisi ketik pertama vs kedua**, isinya bisa berisi input dari P1 ATAU P2 tergantung `state.stepPlayerA/B` ronde itu.
+- `applyTurnColor(labelEl, inputEl, key)`: menyamakan warna label (`text-corner1`/`text-corner2`) dan border input (`border-corner1`/`border-corner2`) dengan pemain yang sedang pegang giliran itu, supaya walau posisinya "step 1", visualnya tetap konsisten dengan warna asli pemain (P1 selalu merah, P2 selalu biru, di mana pun dia mengetik).
+- Placeholder input disetel dinamis tiap ronde: `Serangan ${namaPemain}...` (bukan lagi hardcode "Serangan Player 1...").
+- Saat `btnMultiLock1` diklik → validasi step A tidak kosong → toggle `hidden` step1↔step2 (anti-mengintip, perilaku lama tidak berubah) → set label/placeholder/warna untuk `stepPlayerB` → `startChessTimer(stepPlayerB)`.
+- Saat `btnMultiAttack2` (submit step B) → `runMultiRound()`:
+  1. Ambil `atkA` (dari `#multiAttackInput1`) dan `atkB` (dari `#multiAttackInput2`).
+  2. **Petakan balik ke atk1 (Player 1) / atk2 (Player 2)** berdasarkan `stepPlayerA` — supaya kartu champion (merah) SELALU menampilkan serangan P1 dan kartu challenger (biru) SELALU serangan P2, terlepas dari siapa yang mengetik duluan ronde itu.
+  3. `pauseChessTimer()` → `await getJuryDecision(atk1, atk2)` → render hasil → update skor → tentukan `winnerKey` → update `state.firstTurnPlayer` (kalau ada pemenang) → `prepareMultiRoundTurnOrder()` (otomatis reset form + resume jam untuk ronde berikutnya).
+
+### 3.3 Kompatibilitas dengan Chess Clock & Caching
+- Perubahan giliran ini **tidak mengubah** logika `getJuryDecision()` (urutan cache duel / power score / API fallback tetap identik — lihat `docsgame_original.md` bagian 5 & 8) — hanya urutan SIAPA yang mengisi `atk1`/`atk2` sebelum dipanggil yang berubah, hasil akhirnya tetap dikirim dengan `(atk1, atk2)` yang konsisten posisinya (atk1 = P1, atk2 = P2), jadi cache key (`duelCacheKeyFor`, yang sudah disort alfabetis) tidak terpengaruh sama sekali.
+- `prepareMultiRoundTurnOrder()` adalah **satu-satunya** tempat yang memanggil `startChessTimer()` untuk memulai ronde baru — dipanggil persis sekali di akhir `runMultiRound()` dan sekali lagi di awal match (`btnStartMulti`). Tidak ada pemanggilan `setInterval` ganda karena `startChessTimer()` selalu `clearInterval` dulu sebelum bikin interval baru.
+
+---
+
+## 4. Struktur File Saat Ini (tidak berubah dari awal)
+1. `index.html` — SPA lengkap (HTML + CSS Tailwind + Vanilla JS untuk seluruh state UI, Chess Clock, Timer Arcade, Caching, dan integrasi fetch ke backend).
+2. `/api/juri.js` — Serverless Function Vercel, fallback 3 provider (Gemini + Groq×2), tidak ada hardcode API key (`process.env.AIAPI_KEY_1/2/3`).
+3. `package.json` — `{ "type": "module" }`.
+
+## 5. Instruksi Lanjutan
+Kalau ada permintaan fitur baru dari sini:
+- **Selalu lampirkan** `index.html` dan `api/juri.js` versi terbaru sebagai referensi kode nyata (dokumen ini hanya konteks/keputusan desain, BUKAN pengganti membaca kode aktual).
+- Jangan mengubah struktur `getJuryDecision()`, `duelCacheKeyFor()`, atau format request/response `/api/juri` kecuali diminta eksplisit — banyak fitur (cache, power score, cooldown) bergantung pada kontrak ini.
+- Ikuti pola yang sudah ada: state global `state = {...}` di scope module-level, fungsi murni untuk localStorage (`get*`/`save*`/`clear*`), efek visual lewat `classList.add/remove/toggle` (bukan `innerHTML`), dan riwayat pertarungan tetap WAJIB pakai `createElement` + `textContent` (anti-XSS, jangan pernah pakai `innerHTML` untuk data bebas dari user).
+
+---
+
+<details>
+<summary>📎 Lampiran: <code>docsgame_original.md</code> (spesifikasi awal, sebagai referensi konteks penuh)</summary>
+
 # "Batu Gunting Kertas Unlimited"
 
 Bertindaklah sebagai **Senior Web Developer dan Game Designer**. Lanjutkan/kembangkan game web interaktif bernama **"Batu Gunting Kertas Unlimited"** dalam satu file `index.html` (HTML + CSS + JavaScript, tanpa build tool) dan backend Serverless Vercel (`/api/juri.js`). Berikut seluruh spesifikasi, keputusan desain, dan riwayat perbaikan yang sudah disepakati sejauh ini — ikuti semuanya secara konsisten.
 
----
-
 ## 1. Konsep Game (Singleplayer & Multiplayer)
-
 Pemain tidak dibatasi pada batu/gunting/kertas. Pemain bebas mengetik apa saja (benda, karakter, konsep abstrak — misal "Goku", "Pajak", "Air"). Setelah data masuk, sebuah **AI bertindak sebagai "Juri"** untuk menentukan pemenang beserta alasan singkat (boleh logis, lucu, atau absurd).
 
-Terdapat dua mode permainan dengan manajemen alur layar (UI Flow) yang berbeda:
+- **Mode Singleplayer (Endless/Arcade):** Layar utama menampilkan tantangan berjalan melawan juara bertahan sebelumnya. Pemenang ronde otomatis jadi "Juara Bertahan" berikutnya.
+- **Mode Multiplayer (Local / Hot Seat):** 2 orang bergantian di satu perangkat, form disembunyikan/dimunculkan bergantian agar tidak saling mengintip.
 
-- **Mode Singleplayer (Endless/Arcade):** 
-  Layar utama menampilkan tantangan berjalan melawan juara bertahan sebelumnya. Contoh: **"[ Juara Bertahan ] VS [ Input Kosong ]"**. Pemenang dari ronde ini akan otomatis menjadi "Juara Bertahan" di ronde berikutnya dan menunggu pemain menginput penantang baru.
-
-- **Mode Multiplayer (Local / Hot Seat):**
-  Dimainkan oleh 2 orang secara bergantian di satu perangkat (HP/Laptop). Sistem wajib menggunakan transisi layar (toggle class hidden) untuk menyembunyikan input agar pemain tidak bisa saling mengintip. Alur wajibnya:
-  1. Layar menampilkan form khusus Player 1. Player 1 mengetik serangannya.
-  2. Player 1 menekan tombol "Kunci Input / Lanjut".
-  3. Form Player 1 HILANG/DISEMBUNYIKAN secara visual (layar dibersihkan), lalu muncul form untuk Player 2.
-  4. Player 2 mengetik serangannya di layar yang baru.
-  5. Player 2 menekan tombol "Serang!", lalu layar menampilkan animasi benturan dan memanggil AI Juri.
-
-## 2. Stack Teknologi (Wajib)
-
-- **HTML5** untuk struktur.
-- **Tailwind CSS via CDN** (`cdn.tailwindcss.com`) untuk styling & layout responsif.
-- **Vanilla JavaScript murni** (Semua manipulasi DOM pakai `document.getElementById`, `classList`, `addEventListener`, dll).
-- Google Fonts: **Anton** (font display/poster untuk judul & kata besar), **Inter** (body), **JetBrains Mono** (log riwayat & teks juri).
+## 2. Stack Teknologi
+HTML5, Tailwind CSS via CDN, Vanilla JavaScript murni, Google Fonts (Anton, Inter, JetBrains Mono).
 
 ## 3. Arah Desain Visual
+Tema poster pertarungan/arcade: kartu sudut merah (`corner1: #ff3b5c`) = Juara Bertahan, biru (`corner2: #3ba7ff`) = Penantang, badge diamond emas (`gold: #ffd166`) "VS" di tengah. Font Anton untuk judul/nama/badge. Radial glow emas di background. Animasi getar/flash saat benturan. Timer mode arcade + skor poin.
 
-Tema "poster pertarungan/arcade fighting game", bukan minimalis generik:
-- Dua **kartu sudut**: kiri = **Juara Bertahan** (merah, warna custom `corner1: #ff3b5c`), kanan = **Penantang** (biru, `corner2: #3ba7ff`), dengan badge diamond emas **"VS"** (`gold: #ffd166`) di tengah — pada mobile jadi elemen statis di antara dua kartu (stack vertikal), pada desktop (`md:`) posisinya absolute di tengah grid 2 kolom.
-- Font display **Anton** untuk judul, nama juara/penantang, dan badge VS.
-- Radial glow lembut di background (`radial-gradient` emas transparan).
-- Tambahkan animasi CSS/Tailwind yang keren saat terjadi benturan/pertarungan (misal: efek getar/shake, flash, atau partikel sederhana).
-- Timer Mode Arcade: Game berjalan selama batas waktu. Jika waktu habis, otomatis pindah ke `finis_screen`.
-- Skor Poin: Setiap kali menang ronde, poin pemain bertambah. Poin ini yang menentukan kemenangan di akhir timer.
-
-## 4. STRUKTUR LAYAR (UI FLOW)
-Buatkan manajemen state UI (menyembunyikan/menampilkan div) untuk layar berikut:
-- `start_screen`: Berisi 3 tombol (Singleplayer, Multiplayer, Settings).
-- `settings_screen`: Toggle Light/Dark mode (menyimpan preferensi di localStorage), dan input input nama pemain.
-- `singleplayer_screen` / `multiplayer_screen`: Tampilan area bertarung. Singleplayer (Player vs AI/Randomizer), Multiplayer (Player 1 vs Player 2 bergantian input nama serangan).
-- `play_screen`: Arena pertarungan utama. Menampilkan Timer (Hitung mundur 1 atau 2 menit). Di mode ini, serangan dieksekusi.
-- `juri_loading_screen`: Animasi loading yang keren saat sistem memanggil API Juri AI Vercel.
-- `finis_screen`: Menampilkan pemenang akhir berdasarkan skor tertinggi setelah timer habis.
-
+## 4. Struktur Layar
+`start_screen`, `settings_screen`, `singleplayer_screen`/`multiplayer_screen`, `play_screen` (timer, eksekusi serangan), `juri_loading_screen`, `finis_screen`.
 
 ## 5. Caching & Fallback (Frontend)
-- Caching API: Sebelum menembak ke Vercel, Frontend JS harus mengecek `localStorage`. Jika duel yang sama (misal "Api vs Air") sudah ada di history localStorage, langsung gunakan data tersebut. Jangan panggil Vercel. 
-- Jika Vercel berhasil memanggil AI, simpan hasil JSON tersebut ke `localStorage` agar duel berikutnya instan.
-- Ultimate Fallback: Jika endpoint Vercel mengembalikan error beruntun (semua AI limit/down), hentikan loading dan kembalikan alasan hardcoded: "Juri AI sedang pusing mikirin rumus matematika, tunggu 10 menit ya!". Berikan kondisi "You Win" / auto-menang kepada pemain untuk mengakhiri ronde.
+Cek localStorage dulu sebelum panggil Vercel untuk duel yang sama. Simpan hasil sukses ke localStorage. Ultimate fallback kalau semua provider gagal: "Juri AI sedang pusing mikirin rumus matematika, tunggu 10 menit ya!" + auto-menang untuk pemain.
 
 ## 6. Fitur Wajib
-
-### a. Dark/Light Mode Toggle
-- Tombol dengan icon matahari (mode gelap aktif → klik ke terang) dan bulan (mode terang aktif → klik ke gelap), saling switch pakai `classList.toggle`.
-- Dark mode via `class` strategy Tailwind (`darkMode: 'class'` di `tailwind.config`, toggle class `dark` di elemen `<html>`).
-- **Semua elemen** (background, teks, kartu, border) bertransisi halus (`transition: ... .45s ease`) saat tema berganti.
-
-### b. Manajemen State UI, Efek Visual & Game Feel
-Gunakan pola manipulasi DOM Vanilla JS secara eksplisit (tambah/hapus class) untuk mencegah bug animasi nyangkut.
-
-- **Validasi Input (Shake Effect):** 
-  - *Trigger:* Saat form disubmit tapi input kosong.
-  - *Action:* Tambahkan class `animate-shake` (via custom `@keyframes shakeX` Tailwind) ke elemen input.
-  - *Cleanup:* Gunakan `setTimeout` (misal 500ms) untuk menghapus class tersebut agar animasi bisa di-trigger lagi di percobaan berikutnya.
-- **Indikator Proses API (Pulse Glow):**
-  - *Trigger:* Tepat sebelum pemanggilan `fetch` ke Vercel/AI dimulai.
-  - *Action:* Tambahkan class `vs-fighting` (dengan `animate-pulse` dan shadow glow) pada badge "VS".
-  - *Cleanup:* Wajib dihapus di dalam blok `finally {}` atau setelah `Promise` selesai, agar badge kembali normal meskipun terjadi error.
-- **Transisi Hasil Juri (Fade-in-up):**
-  - *Trigger:* Saat data hasil pemenang sukses di-render ke layar.
-  - *Action:* Hapus class `hidden` dan tambahkan class `@keyframes fadeInUp` pada kontainer panel keputusan.
-- **Render Teks Dinamis (Typewriter):**
-  - *Logika:* Buat fungsi rekursif/interval `typeWriter(text, element)` untuk mencetak alasan juri per karakter. 
-  - *State:* Gunakan class `typing-cursor` pada elemen teks selama animasi berjalan, dan ganti menjadi `typing-done` (kursor hilang/diam) ketika panjang string sudah tercetak 100%.
-- **Highlight Pemenang (Ring UI):**
-  - *Action:* Tambahkan `ring-4 ring-gold` pada elemen div kartu yang menang.
-  - *Cleanup:* Buat satu fungsi global `resetRonde()` yang bertugas secara spesifik menghapus class `ring-4` dari KEDUA belah kartu sebelum input ronde baru dibuka.
-- **Efisiensi Loading UI:**
-  - *Aturan:* Teks indikator "Juri AI sedang menimbang..." HANYA dimunculkan di dalam blok eksekusi API. Jika data diambil instan dari `localStorage` (cache hit), lewati blok loading ini agar UI langsung merender hasil tanpa kedip (flicker).
-- **Keamanan XSS di Log Riwayat:**
-  - *Aturan Mutlak:* Saat melakukan append entri riwayat pertarungan ke dalam list scrollable, WAJIB menggunakan `document.createElement()` dan memasukkan teks pemain via `.textContent`. JANGAN PERNAH menggunakan `.innerHTML` untuk merender input bebas.
-
+Dark/Light toggle (localStorage, transisi halus, `darkMode:'class'`), shake effect validasi kosong, pulse glow badge VS saat fetch, fade-in-up panel hasil, typewriter efek alasan juri, ring gold pemenang + `resetRonde()`, skip loading UI kalau cache hit, riwayat WAJIB `createElement`+`textContent` (anti-XSS, dilarang `innerHTML`).
 
 ## 7. Sistem Multi-Provider AI Juri (Backend Vercel: Gemini + Groq, Fallback Otomatis)
+Semua panggilan AI di `/api/juri.js`, JANGAN pernah dari frontend. Array `PROVIDERS` dari `process.env` (`AIAPI_KEY_1/2/3`, Gemini `gemini-2.5-flash-lite` + 2× Groq `openai/gpt-oss-120b`). Sistem cooldown localStorage (`bgku_ai_cooldowns`, 90 detik) dengan `getProviderOrder()` (bebas dulu, cooldown belakangan). Tombol 🗑️ reset cooldown manual + toast.
 
-Demi keamanan dari pencurian API Key dan GitHub Secret Scanning, pemanggilan AI JANGAN PERNAH dilakukan langsung dari frontend (HTML/JS). Seluruh logika pemanggilan dan rotasi provider harus dilakukan di dalam file backend Vercel Serverless Function (`/api/juri.js`). 
+## 8. Sistem Power Score (localStorage)
+`bgku_power_scores` (`{nama_lowercase: skor 1-100}`). Kalau kedua nama duel sudah punya skor tersimpan → keputusan instan lokal (tanpa panggil AI). Kalau belum → panggil AI seperti biasa tapi prompt minta `power1`/`power2` juga; skor hanya disimpan untuk nama yang belum tercatat (tidak menimpa).
 
-Frontend hanya bertugas mengirim `fetch` ke endpoint `/api/juri`. 
-
-Di dalam file `/api/juri.js`, gunakan array provider yang mengambil kunci dari Vercel Environment Variables:
-
-```javascript
-const PROVIDERS = [
-  { id: "gemini",  label: "Gemini",        type: "gemini", apiKey: process.env.AIAPI_KEY_1, model: "gemini-2.5-flash-lite" },
-  { id: "groq-1",  label: "Groq (Key 1)",  type: "groq",   apiKey: process.env.AIAPI_KEY_2, model: "openai/gpt-oss-120b" },
-  { id: "groq-2",  label: "Groq (Key 2)",  type: "groq",   apiKey: process.env.AIAPI_KEY_3, model: "openai/gpt-oss-120b" },
-];
-
-### Sistem Cooldown berbasis localStorage (status "sibuk" provider)
-
-```js
-const COOLDOWN_KEY = "bgku_ai_cooldowns";
-const COOLDOWN_DURATION_MS = 90 * 1000;
-```
-- `getCooldowns()`, `saveCooldowns()`, `markProviderBusy(id)`, `clearProviderBusy(id)`, `clearAllCooldowns()`.
-- `getProviderOrder()`: provider yang "bebas" dicoba dulu (urutan asli), provider yang masih cooldown ditaruh di belakang (diurutkan dari yang paling cepat pulih) sebagai cadangan terakhir.
-- Provider yang **berhasil** menjawab otomatis di-`clearProviderBusy()` (dianggap sudah pulih).
-- **Tombol sampah** 🗑️ di pojok kiri atas header (sebelah tombol tema) meng-clear `localStorage` cooldown ini secara manual — ada animasi shake pada tombol + toast notifikasi kecil di bawah layar ("Status AI sibuk sudah direset ✔") saat diklik.
-
-## 8. Sistem Power Score (localStorage) — Perbandingan Instan untuk Nama yang Sudah Pernah Muncul
-
-Fitur terbaru yang diminta: **kalau kedua nama yang bertarung (juara & penantang) sudah pernah tercatat sebelumnya, jangan panggil AI lagi** — langsung bandingkan skor tersimpan, yang lebih tinggi otomatis menang.
-
-```js
-const POWER_SCORE_KEY = "bgku_power_scores"; // { "goku": 87, "pajak": 12, ... } — key = nama lowercase
-```
-
-- `getStoredScore(name)` / `setStoredScore(name, value)` / `clearAllPowerScores()`.
-- **Alur di `getJuryDecision(challenger1, challenger2)`:**
-  1. Cek `getStoredScore()` untuk kedua nama.
-  2. **Kalau KEDUA sudah punya skor** → putuskan instan (skor lebih tinggi menang, seri = acak), `reason` dibuat lokal ("Keputusan instan dari data tersimpan: X (skor ..) vs Y (skor ..)"), `providerLabel: "Data Tersimpan (Lokal)"` — **tidak ada panggilan API sama sekali**, jadi hemat kuota & instan.
-  3. **Kalau salah satu/keduanya masih baru** → tetap panggil AI seperti biasa (dengan fallback multi-provider di atas), TAPI prompt-nya dimodifikasi supaya AI juga mengembalikan `power1` dan `power2` (skor 1-100 untuk masing-masing kandidat) selain `winner` dan `reason`. Skor hanya disimpan untuk nama yang **belum** pernah tercatat (skor yang sudah ada tidak ditimpa lagi, supaya konsisten antar ronde).
-- Format JSON yang diminta ke AI (update dari versi awal yang cuma `winner` + `reason`):
-  ```
-  {"winner": "...", "reason": "...", "power1": <1-100>, "power2": <1-100>}
-  ```
-- **UI tambahan yang sedang dikerjakan (belum sepenuhnya selesai di kode terakhir)**:
-  - Elemen `#championScore` di bawah nama juara bertahan, untuk menampilkan skor tersimpan si juara (kalau ada).
-  - Elemen `#challengerHint` di bawah input penantang, untuk menampilkan hint real-time saat user mengetik nama yang ternyata sudah pernah tercatat (misal "⚡ Sudah pernah bertarung, skor: 87").
-  - Referensi DOM untuk kedua elemen ini (`championScoreEl`, `challengerHint`) **sudah ditambahkan** di kode, tapi **logika untuk mengisi/update teksnya saat ronde berganti dan saat user mengetik BELUM ditulis** — ini pekerjaan yang masih perlu diselesaikan.
-  - Pertimbangkan juga apakah tombol sampah perlu opsi tambahan untuk menghapus `bgku_power_scores` (scoreboard) secara terpisah dari cooldown provider, karena keduanya adalah data yang berbeda konsepnya (status sibuk vs skor permanen tiap nama).
-
-## 9. Riwayat Perbaikan Bug/Isu Sepanjang Development (konteks penting)
-
-1. **jQuery dihapus** → diganti vanilla JS penuh atas permintaan user.
-2. **Model Gemini `gemini-3.7-flash`** sempat dipakai lalu diganti `gemini-2.5-flash-lite` karena `gemini-3.7-flash` sering 503 "high demand" (model preview terbaru, traffic tinggi).
-3. **Model Groq `llama-3.3-70b-versatile`** ternyata sudah **di-deprecate per pengumuman 17 Juni 2026** → diganti ke `openai/gpt-oss-120b` (model pengganti resmi Groq).
-4. **API key Gemini format `AQ.xxx`** menyebabkan 404 "model not found" karena bukan key dari Google AI Studio → user diarahkan membuat key baru di https://aistudio.google.com/apikey yang formatnya `AIzaSy...`.
-5. Sempat dibahas alternatif provider lain di luar Gemini/Groq: **DeepSeek** (tidak gratis penuh, ada biaya kecil per token + risiko latensi jam sibuk Tiongkok), **Cerebras** (ternyata sekarang cuma trial $5/30 hari, bukan gratis permanen lagi), **Mistral AI** (1 miliar token/bulan gratis), **SambaNova Cloud** (200rb token/hari gratis, kecepatan sekelas Groq), **Cloudflare Workers AI** (10rb neuron/hari gratis permanen, edge network). Keputusan akhir: tetap pakai kombinasi **1 key Gemini + 2 key Groq**.
-6. Warning `cdn.tailwindcss.com should not be used in production` di console **aman diabaikan** untuk project skala kecil/personal seperti ini (bukan error).
+## 9. Riwayat Perbaikan Bug/Isu
+jQuery dihapus → vanilla JS. Model Gemini `gemini-3.7-flash` (sering 503) → `gemini-2.5-flash-lite`. Model Groq `llama-3.3-70b-versatile` di-deprecate (17 Juni 2026) → `openai/gpt-oss-120b`. API key Gemini harus format `AIzaSy...` dari aistudio.google.com/apikey (bukan format `AQ.xxx`). Alternatif provider lain dipertimbangkan (DeepSeek, Cerebras, Mistral, SambaNova, Cloudflare Workers AI) tapi keputusan akhir tetap 1 Gemini + 2 Groq. Warning `cdn.tailwindcss.com should not be used in production` aman diabaikan untuk skala personal.
 
 ## 10. Yang Harus Dihasilkan
+1. `index.html` lengkap (HTML, CSS Tailwind, Vanilla JS untuk SPA, Timer, Caching).
+2. `/api/juri.js` lengkap (fallback 3 provider, tanpa hardcode API key, komentar bahasa Indonesia di bagian konfigurasi & tiap fungsi utama).
 
-Tolong berikan:
-1. File `index.html` lengkap (berisi HTML, CSS Tailwind, dan Vanilla JS untuk SPA, Timer, dan Caching).
-2. File `/api/juri.js` lengkap untuk Serverless Vercel (dengan sistem fallback 3 Provider, tanpa hardcode API key, gunakan process.env). Sertakan komentar kode yang jelas (bahasa Indonesia) di bagian konfigurasi API key dan di setiap fungsi utama, supaya mudah dimodifikasi nanti.
-
----
-#### semoga bisa berkerja dengan baik >w<
+</details>

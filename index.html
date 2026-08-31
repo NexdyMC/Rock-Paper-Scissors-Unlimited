@@ -10,6 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+<!-- ===== AOS (Animate On Scroll) CSS ===== -->
+<link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet">
+
 <!-- ===== Tailwind CDN ===== -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -136,28 +139,28 @@
   </button>
 </header>
 
-<main class="max-w-5xl mx-auto px-4 pt-20 pb-10">
+<main class="min-h-screen mx-auto px-4  pb-10 grid justify-center items-center">
 
   <!-- ===================================================== -->
   <!-- START SCREEN -->
   <!-- ===================================================== -->
   <section id="start_screen" class="screen active">
     <div class="text-center mb-12">
-      <h1 class="display-font text-5xl md:text-7xl leading-none">
+      <h1 data-aos="zoom-in" class="display-font text-5xl md:text-7xl max-w-3xl text-center leading-none">
         BATU GUNTING KERTAS <span class="text-corner1">UNLIMITED</span>
       </h1>
       <p class="mt-4 text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
-        Ketik apa saja. AI Juri yang menentukan siapa yang menang, dan kenapa.
+        Adu karakter, benda, hingga konsep abstrak, dan biarkan Juri menentukan pemenangnya lewat logika paling konyol.
       </p>
     </div>
     <div class="grid gap-4 max-w-sm mx-auto">
-      <button id="btnGoSingle" class="display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
+      <button id="btnGoSingle" data-aos="fade-up" data-aos-delay="100" class="display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
         SINGLEPLAYER
       </button>
-      <button id="btnGoMulti" class="display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
+      <button id="btnGoMulti" data-aos="fade-up" data-aos-delay="200" class="display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
         MULTIPLAYER
       </button>
-      <button id="btnGoSettings" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800 active:scale-95 transition">
+      <button id="btnGoSettings" data-aos="fade-up" data-aos-delay="300" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800 active:scale-95 transition">
         SETTINGS
       </button>
     </div>
@@ -260,7 +263,7 @@
     <!-- Arena: kartu sudut + badge VS -->
     <div class="relative grid grid-cols-1 md:grid-cols-2 gap-6 items-center mb-8">
 
-      <div id="cardChampion" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner1 shadow-xl">
+      <div id="cardChampion" data-aos="fade-right" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner1 shadow-xl">
         <div class="flex items-center justify-between gap-2">
           <span class="mono-font text-xs uppercase text-corner1 font-semibold">Juara Bertahan</span>
           <span id="clockP1" class="hidden mono-font text-sm font-bold px-2.5 py-0.5 rounded-full border-2 border-corner1">01:00</span>
@@ -276,7 +279,7 @@
         </div>
       </div>
 
-      <div id="cardChallenger" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner2 shadow-xl">
+      <div id="cardChallenger" data-aos="fade-left" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner2 shadow-xl">
         <div class="flex items-center justify-between gap-2">
           <span class="mono-font text-xs uppercase text-corner2 font-semibold">Penantang</span>
           <span id="clockP2" class="hidden mono-font text-sm font-bold px-2.5 py-0.5 rounded-full border-2 border-corner2">01:00</span>
@@ -324,7 +327,7 @@
     </div>
 
     <!-- Panel hasil keputusan -->
-    <div id="resultPanel" class="hidden max-w-lg mx-auto mt-6 p-5 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-gold shadow-xl">
+    <div id="resultPanel" data-aos="flip-up" class="hidden max-w-lg mx-auto mt-6 p-5 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-gold shadow-xl">
       <p class="display-font text-2xl mb-1"><span id="resultWinnerName"></span> MENANG!</p>
       <p id="resultReason" class="mono-font text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"></p>
       <p id="resultProvider" class="mono-font text-[11px] mt-2 text-neutral-400"></p>
@@ -334,6 +337,9 @@
     <div class="max-w-lg mx-auto mt-8">
       <p class="mono-font text-xs uppercase text-neutral-500 mb-2">Riwayat Ronde</p>
       <ul id="historyList" class="mono-font text-xs space-y-1 max-h-40 overflow-y-auto pr-1"></ul>
+    </div>
+    <div class="text-center">
+      <button id="btnBackFromMultiSetup" class="text-sm text-neutral-500 hover:underline">← Kembali ke menu</button>
     </div>
   </section>
 
@@ -423,6 +429,11 @@ let state = {
   timerRemaining: 60,
   timerInterval: null,
   roundBusy: false,
+  // ---- Multiplayer turn order (winner goes first) ----
+  firstTurnPlayer: 'p1',
+  currentMultiTurn: 'p1',
+  lastRoundWinner: null,
+  multiRoundAttacks: { p1: '', p2: '' },
   // ---- Chess Clock (khusus multiplayer) ----
   timeP1: 60,
   timeP2: 60,
@@ -436,6 +447,7 @@ let state = {
 function showScreen(id) {
   screens.forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  refreshAOS();
 }
 
 /* =========================================================================
@@ -616,6 +628,47 @@ function resetRonde() {
   singleChallengeInput.value = '';
   multiAttackInput1.value = '';
   multiAttackInput2.value = '';
+  state.multiRoundAttacks = { p1: '', p2: '' };
+}
+
+function syncCardCornerLabels() {
+  const championLabel = cardChampion.querySelector('.mono-font');
+  const challengerLabel = cardChallenger.querySelector('.mono-font');
+
+  if (state.mode === 'multi') {
+    championLabel.textContent = `Player 1 : ${state.nameP1 || 'Player 1'}`;
+    challengerLabel.textContent = `Player 2 : ${state.nameP2 || 'Player 2'}`;
+  } else {
+    championLabel.textContent = 'Juara Bertahan';
+    challengerLabel.textContent = 'Penantang';
+  }
+}
+
+function setMultiTurn(playerKey) {
+  state.currentMultiTurn = playerKey;
+  const p1Name = state.nameP1 || 'Player 1';
+  const p2Name = state.nameP2 || 'Player 2';
+
+  multiStep1Area.classList.toggle('hidden', playerKey !== 'p1');
+  multiStep2Area.classList.toggle('hidden', playerKey !== 'p2');
+  document.getElementById('multiStep1Label').textContent = `Giliran ${p1Name}`;
+  document.getElementById('multiStep2Label').textContent = `Giliran ${p2Name}`;
+  multiAttackInput1.placeholder = `Serangan ${p1Name}...`;
+  multiAttackInput2.placeholder = `Serangan ${p2Name}...`;
+  refreshAOS();
+}
+
+function beginMultiRoundFromTurn(firstTurnKey) {
+  state.firstTurnPlayer = firstTurnKey;
+  state.currentMultiTurn = firstTurnKey;
+  state.multiRoundAttacks = { p1: '', p2: '' };
+  multiAttackInput1.value = '';
+  multiAttackInput2.value = '';
+  setMultiTurn(firstTurnKey);
+}
+
+function getOpponentKey(playerKey) {
+  return playerKey === 'p1' ? 'p2' : 'p1';
 }
 
 /* =========================================================================
@@ -907,6 +960,10 @@ document.getElementById('btnStartMulti').addEventListener('click', () => {
   state.mode = 'multi';
   state.nameP1 = n1; state.nameP2 = n2;
   state.scoreP1 = 0; state.scoreP2 = 0;
+  state.firstTurnPlayer = 'p1';
+  state.currentMultiTurn = 'p1';
+  state.lastRoundWinner = null;
+  syncCardCornerLabels();
 
   championNameEl.textContent = n1;
   challengerNameEl.textContent = n2;
@@ -917,9 +974,7 @@ document.getElementById('btnStartMulti').addEventListener('click', () => {
   resetRonde();
 
   singleInputArea.classList.add('hidden');
-  multiStep2Area.classList.add('hidden');
-  multiStep1Area.classList.remove('hidden');
-  document.getElementById('multiStep1Label').textContent = `Giliran ${n1}`;
+  beginMultiRoundFromTurn('p1');
 
   // Mode multiplayer pakai Chess Clock per-pemain; timer arcade global dimatikan.
   stopTimer();
@@ -927,52 +982,76 @@ document.getElementById('btnStartMulti').addEventListener('click', () => {
 
   showScreen('play_screen');
   initChessClocks();
-  startChessTimer('p1'); // Player 1 mulai duluan
+  startChessTimer('p1');
 });
 
-document.getElementById('btnMultiLock1').addEventListener('click', () => {
-  const atk1 = multiAttackInput1.value.trim();
-  if (!atk1) { shakeInput(multiAttackInput1); return; }
-  // Sembunyikan form Player 1, tampilkan form Player 2 (anti-mengintip)
-  multiStep1Area.classList.add('hidden');
-  multiStep2Area.classList.remove('hidden');
-  document.getElementById('multiStep2Label').textContent = `Giliran ${state.nameP2}`;
-  // clearInterval jam P1, otomatis mulai jam P2 (satu setInterval aktif per waktu).
-  startChessTimer('p2');
-});
+function submitMultiTurn(playerKey) {
+  const inputEl = playerKey === 'p1' ? multiAttackInput1 : multiAttackInput2;
+  const rawValue = inputEl.value.trim();
+  if (!rawValue) { shakeInput(inputEl); return; }
 
-document.getElementById('btnMultiAttack2').addEventListener('click', () => runMultiRound());
+  state.multiRoundAttacks[playerKey] = rawValue;
+  inputEl.value = '';
+
+  const firstPlayerKey = state.firstTurnPlayer;
+  const secondPlayerKey = getOpponentKey(firstPlayerKey);
+
+  if (playerKey === firstPlayerKey) {
+    setMultiTurn(secondPlayerKey);
+    startChessTimer(secondPlayerKey);
+    return;
+  }
+
+  if (playerKey === secondPlayerKey) {
+    runMultiRound();
+  }
+}
+
+document.getElementById('btnMultiLock1').addEventListener('click', () => submitMultiTurn('p1'));
+document.getElementById('btnMultiAttack2').addEventListener('click', () => submitMultiTurn('p2'));
 
 async function runMultiRound() {
   if (state.roundBusy) return;
-  const atk1 = multiAttackInput1.value.trim();
-  const atk2 = multiAttackInput2.value.trim();
-  if (!atk2) { shakeInput(multiAttackInput2); return; }
+
+  const atk1 = state.multiRoundAttacks.p1;
+  const atk2 = state.multiRoundAttacks.p2;
+  if (!atk1 || !atk2) {
+    if (!atk1) shakeInput(multiAttackInput1);
+    if (!atk2) shakeInput(multiAttackInput2);
+    return;
+  }
 
   state.roundBusy = true;
   championNameEl.textContent = atk1;
   challengerNameEl.textContent = atk2;
   resetRonde();
 
-  // Fairness: begitu Player 2 menyerang & layar loading AI Juri muncul,
-  // KEDUA jam catur wajib berhenti — jangan sampai waktu habis saat menunggu backend.
   pauseChessTimer();
 
   const decision = await getJuryDecision(atk1, atk2);
   renderDecision(atk1, atk2, decision, cardChampion, cardChallenger);
 
-  if (normalizeName(decision.winner) === normalizeName(atk1)) state.scoreP1 += 1;
-  else state.scoreP2 += 1;
+  const winnerKey =
+    normalizeName(decision.winner) === normalizeName(state.nameP1) ? 'p1' :
+    normalizeName(decision.winner) === normalizeName(state.nameP2) ? 'p2' : null;
+
+  if (winnerKey === 'p1') state.scoreP1 += 1;
+  else if (winnerKey === 'p2') state.scoreP2 += 1;
   scoreDisplay.textContent = `${state.nameP1}: ${state.scoreP1}  |  ${state.nameP2}: ${state.scoreP2}`;
 
-  multiStep1Area.classList.remove('hidden');
-  multiStep2Area.classList.add('hidden');
+  state.lastRoundWinner = winnerKey;
+  if (winnerKey === 'p1') {
+    state.firstTurnPlayer = 'p1';
+  } else if (winnerKey === 'p2') {
+    state.firstTurnPlayer = 'p2';
+  }
+  // Draw => tetap pakai urutan yang sama seperti ronde sebelumnya.
+
+  state.multiRoundAttacks = { p1: '', p2: '' };
   multiAttackInput1.value = '';
   multiAttackInput2.value = '';
-  document.getElementById('multiStep1Label').textContent = `Giliran ${state.nameP1}`;
-
-  // Ronde berikutnya dimulai → lanjutkan (resume) jam catur, giliran Player 1 lagi.
-  startChessTimer('p1');
+  beginMultiRoundFromTurn(state.firstTurnPlayer);
+  startChessTimer(state.firstTurnPlayer);
   state.roundBusy = false;
 }
 
@@ -990,6 +1069,7 @@ function renderDecision(nameA, nameB, decision, cardA, cardB) {
   resultProvider.textContent = `Sumber: ${decision.providerLabel}`;
   resultPanel.classList.remove('hidden');
   resultPanel.classList.add('animate-fade-in-up');
+  refreshAOS();
 
   typeWriter(decision.reason, resultReason);
 
@@ -1127,6 +1207,24 @@ chessTimeCustomInput.addEventListener('change', () => {
    ========================================================================= */
 initTheme();
 showScreen('start_screen');
+
+/* =========================================================================
+   AOS (Animate On Scroll) — helper refresh untuk SPA
+   SPA ini memanipulasi class `hidden` Tailwind, bukan render ulang DOM,
+   jadi AOS WAJIB di-refresh tiap kali layar/elemen form baru dimunculkan
+   supaya AOS menghitung ulang posisi elemen & men-trigger animasinya.
+   (AOS.init() sendiri dipanggil setelah library AOS dimuat, di bawah.)
+   ========================================================================= */
+function refreshAOS() {
+  setTimeout(() => { if (window.AOS) AOS.refresh(); }, 50);
+}
+</script>
+
+<!-- ===== AOS (Animate On Scroll) JS — dimuat sebelum penutup body ===== -->
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 600, once: false, mirror: true });
+  refreshAOS();
 </script>
 </body>
 </html>

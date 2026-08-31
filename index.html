@@ -13,56 +13,12 @@
 <!-- ===== AOS (Animate On Scroll) CSS ===== -->
 <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet">
 
+<!-- ===== Font Awesome (Free) — Webfonts CSS ===== -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <!-- ===== Tailwind CDN ===== -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        colors: {
-          corner1: '#ff3b5c',
-          corner2: '#3ba7ff',
-          gold: '#ffd166',
-        },
-        fontFamily: {
-          display: ['Anton', 'sans-serif'],
-          body: ['Inter', 'sans-serif'],
-          mono: ['"JetBrains Mono"', 'monospace'],
-        },
-        keyframes: {
-          shakeX: {
-            '0%, 100%': { transform: 'translateX(0)' },
-            '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
-            '20%, 40%, 60%, 80%': { transform: 'translateX(8px)' },
-          },
-          fadeInUp: {
-            '0%': { opacity: '0', transform: 'translateY(20px)' },
-            '100%': { opacity: '1', transform: 'translateY(0)' },
-          },
-          popIn: {
-            '0%': { opacity: '0', transform: 'scale(.6) rotate(-8deg)' },
-            '70%': { opacity: '1', transform: 'scale(1.08) rotate(2deg)' },
-            '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
-          },
-          impactShake: {
-            '0%, 100%': { transform: 'translate(0,0) rotate(0)' },
-            '20%': { transform: 'translate(-6px,2px) rotate(-1deg)' },
-            '40%': { transform: 'translate(6px,-2px) rotate(1deg)' },
-            '60%': { transform: 'translate(-4px,1px) rotate(-1deg)' },
-            '80%': { transform: 'translate(4px,-1px) rotate(1deg)' },
-          },
-        },
-        animation: {
-          shake: 'shakeX .5s ease-in-out',
-          'fade-in-up': 'fadeInUp .5s ease-out forwards',
-          'pop-in': 'popIn .5s cubic-bezier(.34,1.56,.64,1) forwards',
-          'impact-shake': 'impactShake .4s ease-in-out',
-        },
-      },
-    },
-  };
-</script>
+<script src="js/tailwind.config.js"></script>
 
 <style>
   html, body { height: 100%; }
@@ -134,8 +90,8 @@
   </button>
   <button id="themeToggleBtn" title="Ganti tema"
     class="w-10 h-10 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-neutral-300 dark:border-neutral-700 backdrop-blur flex items-center justify-center text-lg shadow hover:scale-105 transition">
-    <span id="themeIconSun">☀️</span>
-    <span id="themeIconMoon" class="hidden">🌙</span>
+    <span id="themeIconSun"><i class="fa-solid fa-sun"></i></span>
+    <span id="themeIconMoon" class="hidden"><i class="fa-solid fa-moon"></i></span>
   </button>
 </header>
 
@@ -149,19 +105,19 @@
       <h1 data-aos="zoom-in" class="display-font text-5xl md:text-7xl max-w-3xl text-center leading-none">
         BATU GUNTING KERTAS <span class="text-corner1">UNLIMITED</span>
       </h1>
-      <p class="mt-4 text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
+      <p data-aos="zoom-in" class="mt-4 text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
         Adu karakter, benda, hingga konsep abstrak, dan biarkan Juri menentukan pemenangnya lewat logika paling konyol.
       </p>
     </div>
     <div class="grid gap-4 max-w-sm mx-auto">
-      <button id="btnGoSingle" data-aos="fade-up" data-aos-delay="100" class="display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
-        SINGLEPLAYER
+      <button id="btnGoSingle" data-aos="fade-up" data-aos-delay="100" class="display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg hover:brightness-110 active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-user"></i> SINGLEPLAYER
       </button>
-      <button id="btnGoMulti" data-aos="fade-up" data-aos-delay="200" class="display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
-        MULTIPLAYER
+      <button id="btnGoMulti" data-aos="fade-up" data-aos-delay="200" class="display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg hover:brightness-110 active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-users"></i> MULTIPLAYER
       </button>
-      <button id="btnGoSettings" data-aos="fade-up" data-aos-delay="300" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800 active:scale-95 transition">
-        SETTINGS
+      <button id="btnGoSettings" data-aos="fade-up" data-aos-delay="300" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800 active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-gear"></i> SETTINGS
       </button>
     </div>
   </section>
@@ -207,8 +163,8 @@
       <button id="btnResetPowerScores" class="w-full py-3 rounded-xl border-2 border-neutral-400 dark:border-neutral-600 text-sm font-semibold hover:bg-neutral-200 dark:hover:bg-neutral-800 transition">
         🏆 Hapus Semua Skor Kekuatan Tersimpan
       </button>
-      <button id="btnBackFromSettings" class="w-full display-font text-xl py-3 rounded-2xl bg-neutral-800 dark:bg-gold text-white dark:text-neutral-900 active:scale-95 transition">
-        KEMBALI
+      <button id="btnBackFromSettings" class="w-full display-font text-xl py-3 rounded-2xl bg-neutral-800 dark:bg-gold text-white dark:text-neutral-900 active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-arrow-left"></i> KEMBALI
       </button>
     </div>
   </section>
@@ -250,7 +206,13 @@
   <!-- ===================================================== -->
   <!-- PLAY SCREEN (arena pertarungan utama, dipakai kedua mode) -->
   <!-- ===================================================== -->
-  <section id="play_screen" class="screen">
+  <section id="play_screen" class="screen relative">
+
+    <!-- Tombol Kembali ke Beranda: pojok kiri atas play_screen -->
+    <button id="btnBackToHomeFromPlay" title="Kembali ke Beranda"
+      class="absolute top-0 left-0 w-9 h-9 rounded-full bg-white/80 dark:bg-neutral-900/80 border border-neutral-300 dark:border-neutral-700 flex justify-center items-center gap-2 text-lg shadow hover:scale-105 active:scale-95 transition z-20">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
 
     <!-- Timer (arcade, singleplayer) & Skor -->
     <div class="flex items-center justify-center gap-6 mb-6">
@@ -290,52 +252,52 @@
     </div>
 
     <!-- ==== Input area: SINGLEPLAYER ==== -->
-    <div id="singleInputArea" class="max-w-sm mx-auto hidden">
+    <div data-aos="fade-up" id="singleInputArea" class="max-w-sm mx-auto hidden">
       <div class="flex gap-2">
         <input id="singleChallengeInput" type="text" placeholder="Ketik penantangmu..."
           class="flex-1 px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
-        <button id="btnSingleAttack" class="px-6 py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition">
-          Tantang!
+        <button id="btnSingleAttack" class="px-6 py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition flex justify-center items-center gap-2">
+          <i class="fa-solid fa-bolt"></i> Tantang!
         </button>
       </div>
     </div>
 
     <!-- ==== Input area: MULTIPLAYER step 1 (Player 1) ==== -->
-    <div id="multiStep1Area" class="max-w-sm mx-auto hidden">
+    <div data-aos="fade-up" id="multiStep1Area" class="max-w-sm mx-auto hidden">
       <p class="text-center text-sm mb-2 text-corner1 font-semibold" id="multiStep1Label">Giliran Player 1</p>
       <input id="multiAttackInput1" type="text" placeholder="Serangan Player 1..."
         class="w-full px-4 py-3 rounded-xl border-2 border-corner1 bg-white dark:bg-neutral-900 outline-none text-center mb-2">
-      <button id="btnMultiLock1" class="w-full py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition">
-        Kunci Input / Lanjut
+      <button id="btnMultiLock1" class="w-full py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-lock"></i> Kunci Input / Lanjut
       </button>
     </div>
 
     <!-- ==== Input area: MULTIPLAYER step 2 (Player 2) ==== -->
-    <div id="multiStep2Area" class="max-w-sm mx-auto hidden">
+    <div data-aos="fade-up" id="multiStep2Area" class="max-w-sm mx-auto hidden">
       <p class="text-center text-sm mb-2 text-corner2 font-semibold" id="multiStep2Label">Giliran Player 2</p>
       <input id="multiAttackInput2" type="text" placeholder="Serangan Player 2..."
         class="w-full px-4 py-3 rounded-xl border-2 border-corner2 bg-white dark:bg-neutral-900 outline-none text-center mb-2">
-      <button id="btnMultiAttack2" class="w-full py-3 rounded-xl display-font text-xl bg-corner2 text-white active:scale-95 transition">
-        Serang!
+      <button id="btnMultiAttack2" class="w-full py-3 rounded-xl display-font text-xl bg-corner2 text-white active:scale-95 transition flex justify-center items-center gap-2">
+        <i class="fa-solid fa-crosshairs"></i> Serang!
       </button>
     </div>
 
     <!-- Loading indikator (hanya muncul saat panggilan API asli) -->
-    <div id="juri_loading_screen" class="hidden text-center py-6">
+    <div data-aos="fade-up" id="juri_loading_screen" class="hidden text-center py-6">
       <div class="inline-block w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mb-3"></div>
       <p class="mono-font text-sm text-neutral-500 dark:text-neutral-400" id="loadingText">Juri AI sedang menimbang...</p>
     </div>
 
     <!-- Panel hasil keputusan -->
-    <div id="resultPanel" data-aos="flip-up" class="hidden max-w-lg mx-auto mt-6 p-5 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-gold shadow-xl">
+    <div data-aos="fade-up" id="resultPanel" data-aos="flip-up" class="hidden max-w-lg mx-auto mt-6 p-5 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-gold shadow-xl">
       <p class="display-font text-2xl mb-1"><span id="resultWinnerName"></span> MENANG!</p>
       <p id="resultReason" class="mono-font text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"></p>
       <p id="resultProvider" class="mono-font text-[11px] mt-2 text-neutral-400"></p>
     </div>
 
     <!-- Riwayat pertarungan -->
-    <div class="max-w-lg mx-auto mt-8">
-      <p class="mono-font text-xs uppercase text-neutral-500 mb-2">Riwayat Ronde</p>
+    <div data-aos="fade-up" class="max-w-lg mx-auto mt-8">
+      <p class="mono-font text-xs uppercase text-neutral-500 mb-2 flex items-center gap-2"><i class="fa-solid fa-list"></i> Riwayat Ronde</p>
       <ul id="historyList" class="mono-font text-xs space-y-1 max-h-40 overflow-y-auto pr-1"></ul>
     </div>
     <div class="text-center">
@@ -350,6 +312,13 @@
     <h2 id="finisTitle" class="display-font text-3xl text-gold mb-2">WAKTU HABIS!</h2>
     <p class="display-font text-5xl md:text-6xl mb-6" id="finalWinnerText">-</p>
     <div id="finalScoreBoard" class="mono-font text-sm mb-8 space-y-1"></div>
+
+    <!-- Riwayat Ronde (dibaca dari array riwayatGame, dirender via createElement+textContent) -->
+    <div class="max-w-lg mx-auto mb-8 text-left">
+      <p class="mono-font text-xs uppercase text-neutral-500 mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pertarungan</p>
+      <ul id="finisHistoryList" class="mono-font text-xs space-y-2 max-h-64 overflow-y-auto pr-1"></ul>
+    </div>
+
     <div class="max-w-sm mx-auto grid gap-3">
       <button id="btnPlayAgain" class="display-font text-xl py-3 rounded-2xl bg-corner1 text-white active:scale-95 transition">MAIN LAGI</button>
       <button id="btnBackToMenuFromFinis" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 active:scale-95 transition">MENU UTAMA</button>
@@ -360,26 +329,19 @@
 
 <div id="toast" class="toast"></div>
 
+<!-- ===== Variabel Global (state game, key localStorage, dll) ===== -->
+<!-- WAJIB dimuat SEBELUM script utama di bawah, karena fungsi & event
+     listener di script utama memakai `state`, `riwayatGame`, dan
+     konstanta-konstanta ini secara langsung. -->
+<script src="js/global.js"></script>
+
 <script>
 /* =========================================================================
    BATU GUNTING KERTAS UNLIMITED — Frontend Logic (Vanilla JS)
+   Catatan: seluruh variabel global (state, konstanta key localStorage,
+   dll) SUDAH dipindah ke js/global.js — file ini hanya berisi fungsi
+   eksekusi & event listener.
    ========================================================================= */
-
-/* ---------- KEY LOCALSTORAGE ---------- */
-const THEME_KEY = 'bgku_theme';
-const PLAYER_NAME_KEY = 'bgku_player_name';
-const TIMER_DURATION_KEY = 'bgku_timer_duration';
-const DUEL_CACHE_KEY = 'bgku_duel_cache';
-const COOLDOWN_KEY = 'bgku_ai_cooldowns';
-const COOLDOWN_DURATION_MS = 90 * 1000;
-const POWER_SCORE_KEY = 'bgku_power_scores';
-const CHESS_TIME_KEY = 'bgku_time_setting'; // durasi waktu catur multiplayer, disimpan dalam DETIK
-
-const PROVIDERS_META = [
-  { id: 'gemini', label: 'Gemini' },
-  { id: 'groq-1', label: 'Groq (Key 1)' },
-  { id: 'groq-2', label: 'Groq (Key 2)' },
-];
 
 /* ---------- ELEMEN DOM UTAMA ---------- */
 const screens = document.querySelectorAll('.screen');
@@ -413,33 +375,13 @@ const resultWinnerName = document.getElementById('resultWinnerName');
 const resultReason = document.getElementById('resultReason');
 const resultProvider = document.getElementById('resultProvider');
 const historyList = document.getElementById('historyList');
+const finisHistoryList = document.getElementById('finisHistoryList');
 
 const globalTimerWrap = document.getElementById('globalTimerWrap');
 const clockP1El = document.getElementById('clockP1');
 const clockP2El = document.getElementById('clockP2');
 const chessTimeOptions = document.getElementById('chessTimeOptions');
 const chessTimeCustomInput = document.getElementById('chessTimeCustomInput');
-const CHESS_PRESET_MINUTES = [1, 2, 3, 5, 10];
-
-/* ---------- STATE GAME ---------- */
-let state = {
-  mode: null,          // 'single' | 'multi'
-  champion: { name: 'Input Kosong', score: 0 }, // dipakai singleplayer
-  scoreP1: 0, scoreP2: 0, nameP1: 'Player 1', nameP2: 'Player 2', // dipakai multiplayer
-  timerRemaining: 60,
-  timerInterval: null,
-  roundBusy: false,
-  // ---- Multiplayer turn order (winner goes first) ----
-  firstTurnPlayer: 'p1',
-  currentMultiTurn: 'p1',
-  lastRoundWinner: null,
-  multiRoundAttacks: { p1: '', p2: '' },
-  // ---- Chess Clock (khusus multiplayer) ----
-  timeP1: 60,
-  timeP2: 60,
-  chessInterval: null,
-  activeChessPlayer: null, // 'p1' | 'p2' | null (null = pause)
-};
 
 /* =========================================================================
    HELPER: NAVIGASI ANTAR LAYAR
@@ -819,9 +761,9 @@ function renderChessClocks() {
   clockP1El.textContent = formatClock(state.timeP1);
   clockP2El.textContent = formatClock(state.timeP2);
 
-  clockP1El.classList.toggle('text-red-500', state.timeP1 <= 10);
+  clockP1El.classList.toggle('text-white', state.timeP1 <= 10);
   clockP1El.classList.toggle('animate-pulse', state.timeP1 <= 10);
-  clockP2El.classList.toggle('text-red-500', state.timeP2 <= 10);
+  clockP2El.classList.toggle('text-white', state.timeP2 <= 10);
   clockP2El.classList.toggle('animate-pulse', state.timeP2 <= 10);
 
   // Highlight jam milik pemain yang sedang jalan.
@@ -902,6 +844,7 @@ document.getElementById('btnStartSingle').addEventListener('click', () => {
   challengerHint.textContent = '';
   scoreDisplay.textContent = `Skor: 0`;
   historyList.innerHTML = '';
+  riwayatGame.length = 0; // reset riwayat ronde untuk match baru
   resetRonde();
 
   singleInputArea.classList.remove('hidden');
@@ -932,6 +875,15 @@ async function runSingleRound() {
 
   const decision = await getJuryDecision(state.champion.name, challenger);
   renderDecision(state.champion.name, challenger, decision, cardChampion, cardChallenger);
+
+  // ---- Riwayat Ronde (untuk finis_screen) ----
+  riwayatGame.push({
+    ronde: riwayatGame.length + 1,
+    p1: state.champion.name,
+    p2: challenger,
+    pemenang: decision.winner,
+    alasan: decision.reason,
+  });
 
   const winnerIsChampion = normalizeName(decision.winner) === normalizeName(state.champion.name);
   if (!winnerIsChampion) {
@@ -971,6 +923,7 @@ document.getElementById('btnStartMulti').addEventListener('click', () => {
   challengerHint.textContent = '';
   scoreDisplay.textContent = `${n1}: 0  |  ${n2}: 0`;
   historyList.innerHTML = '';
+  riwayatGame.length = 0; // reset riwayat ronde untuk match baru
   resetRonde();
 
   singleInputArea.classList.add('hidden');
@@ -1031,13 +984,28 @@ async function runMultiRound() {
   const decision = await getJuryDecision(atk1, atk2);
   renderDecision(atk1, atk2, decision, cardChampion, cardChallenger);
 
+  // BUG FIX: `decision.winner` berisi TEKS SERANGAN yang menang (mis. "Goku"),
+  // BUKAN nama pemain (mis. "Player 1")! Sebelumnya kode ini salah membandingkan
+  // decision.winner dengan state.nameP1/state.nameP2 (nama pemain), sehingga
+  // winnerKey nyaris selalu null dan skor tidak pernah bertambah (tetap 0:0).
+  // Perbaikan: bandingkan dengan atk1/atk2 (teks serangan ronde ini).
   const winnerKey =
-    normalizeName(decision.winner) === normalizeName(state.nameP1) ? 'p1' :
-    normalizeName(decision.winner) === normalizeName(state.nameP2) ? 'p2' : null;
+    normalizeName(decision.winner) === normalizeName(atk1) ? 'p1' :
+    normalizeName(decision.winner) === normalizeName(atk2) ? 'p2' : null;
 
   if (winnerKey === 'p1') state.scoreP1 += 1;
   else if (winnerKey === 'p2') state.scoreP2 += 1;
+  // Update DOM skor supaya perubahan angka langsung tampil di layar.
   scoreDisplay.textContent = `${state.nameP1}: ${state.scoreP1}  |  ${state.nameP2}: ${state.scoreP2}`;
+
+  // ---- Riwayat Ronde (untuk finis_screen) ----
+  riwayatGame.push({
+    ronde: riwayatGame.length + 1,
+    p1: atk1,
+    p2: atk2,
+    pemenang: decision.winner,
+    alasan: decision.reason,
+  });
 
   state.lastRoundWinner = winnerKey;
   if (winnerKey === 'p1') {
@@ -1079,6 +1047,52 @@ function renderDecision(nameA, nameB, decision, cardA, cardB) {
 /* =========================================================================
    FINIS SCREEN
    ========================================================================= */
+// Render ulang riwayatGame (array JSON) sebagai list HTML di finis_screen.
+// WAJIB pakai createElement + textContent (anti-XSS) — sama seperti appendHistory().
+function renderFinisHistory() {
+  finisHistoryList.innerHTML = '';
+
+  if (riwayatGame.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'text-neutral-400 text-center';
+    empty.textContent = 'Belum ada ronde yang tercatat.';
+    finisHistoryList.appendChild(empty);
+    return;
+  }
+
+  riwayatGame.forEach(entry => {
+    const li = document.createElement('li');
+    li.className = 'px-3 py-2 rounded-lg bg-neutral-200/60 dark:bg-neutral-800/60';
+
+    const headLine = document.createElement('p');
+    headLine.className = 'font-semibold flex items-center flex-wrap gap-1';
+
+    const preText = document.createElement('span');
+    preText.textContent = `Ronde ${entry.ronde}: ${entry.p1} vs ${entry.p2} → `;
+
+    const winnerIcon = document.createElement('i');
+    winnerIcon.className = 'fa-solid fa-trophy text-gold';
+
+    const winnerText = document.createElement('span');
+    winnerText.textContent = `${entry.pemenang} menang`;
+
+    headLine.appendChild(preText);
+    headLine.appendChild(winnerIcon);
+    headLine.appendChild(winnerText);
+
+    const reasonLine = document.createElement('p');
+    reasonLine.className = 'text-neutral-500 dark:text-neutral-400 mt-0.5';
+    reasonLine.textContent = entry.alasan;
+
+    li.appendChild(headLine);
+    li.appendChild(reasonLine);
+    finisHistoryList.appendChild(li);
+  });
+  // Font Awesome versi Webfont/CSS: ikon <i class="fa-solid ..."> yang baru
+  // di-append ke DOM otomatis dirender oleh browser lewat CSS, jadi TIDAK
+  // perlu fungsi JS tambahan seperti pada Feather Icons sebelumnya.
+}
+
 function goToFinis() {
   // Matikan kedua jenis timer supaya tidak ada interval yang berjalan ganda.
   stopTimer();
@@ -1107,6 +1121,7 @@ function goToFinis() {
     board.appendChild(l1);
     board.appendChild(l2);
   }
+  renderFinisHistory();
   showScreen('finis_screen');
 }
 
@@ -1134,14 +1149,44 @@ function goToFinisTimeOut(loserName, winnerName) {
   board.appendChild(l1);
   board.appendChild(l2);
 
+  renderFinisHistory();
   showScreen('finis_screen');
 }
+
 
 document.getElementById('btnPlayAgain').addEventListener('click', () => {
   if (state.mode === 'single') showScreen('singleplayer_screen');
   else showScreen('multiplayer_screen');
 });
 document.getElementById('btnBackToMenuFromFinis').addEventListener('click', () => showScreen('start_screen'));
+
+/* =========================================================================
+   TOMBOL "KEMBALI KE BERANDA" (dari dalam play_screen / arena pertarungan)
+   ========================================================================= */
+document.getElementById('btnBackToHomeFromPlay').addEventListener('click', () => {
+  // 1) clearInterval SEMUA timer yang mungkin sedang jalan (arcade & chess clock).
+  stopTimer();
+  stopChessClocks();
+
+  // 2) Reset skor & input kembali ke 0 / kosong.
+  state.champion = { name: 'Input Kosong', score: 0 };
+  state.scoreP1 = 0;
+  state.scoreP2 = 0;
+  state.roundBusy = false;
+  scoreDisplay.textContent = '';
+  singleChallengeInput.value = '';
+  multiAttackInput1.value = '';
+  multiAttackInput2.value = '';
+  resetRonde();
+
+  // 3) Sembunyikan play_screen, tampilkan start_screen.
+  // Catatan: SPA ini menyembunyikan/memunculkan layar lewat sistem
+  // `.screen` + `.active` (dikelola oleh showScreen()), bukan class
+  // Tailwind `hidden` secara langsung — showScreen() di bawah ini
+  // melakukan hal yang sama (toggle visibilitas antar layar) dengan cara
+  // yang konsisten dengan seluruh arsitektur SPA yang sudah ada.
+  showScreen('start_screen');
+});
 
 /* =========================================================================
    SETTINGS SCREEN

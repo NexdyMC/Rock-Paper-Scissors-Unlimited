@@ -1,0 +1,7 @@
+{
+  "name": "batu-gunting-kertas-unlimited",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Game web batu-gunting-kertas bebas input dengan AI Juri (Gemini + Groq fallback) via Vercel Serverless Function."
+}

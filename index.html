@@ -1,662 +1,928 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Batu Gunting Kertas Unlimited</title>
 
-<!-- Tailwind CSS via CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Google Fonts: Anton (display, poster-style) + Inter (body) + JetBrains Mono (log/verdict) -->
+<!-- ===== Google Fonts ===== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Tailwind CSS via CDN -->
+<!-- ===== Tailwind CDN ===== -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Google Fonts: Anton (display, poster-style) + Inter (body) + JetBrains Mono (log/verdict) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          corner1: '#ff3b5c',
+          corner2: '#3ba7ff',
+          gold: '#ffd166',
+        },
+        fontFamily: {
+          display: ['Anton', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        keyframes: {
+          shakeX: {
+            '0%, 100%': { transform: 'translateX(0)' },
+            '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
+            '20%, 40%, 60%, 80%': { transform: 'translateX(8px)' },
+          },
+          fadeInUp: {
+            '0%': { opacity: '0', transform: 'translateY(20px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+          popIn: {
+            '0%': { opacity: '0', transform: 'scale(.6) rotate(-8deg)' },
+            '70%': { opacity: '1', transform: 'scale(1.08) rotate(2deg)' },
+            '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+          },
+          impactShake: {
+            '0%, 100%': { transform: 'translate(0,0) rotate(0)' },
+            '20%': { transform: 'translate(-6px,2px) rotate(-1deg)' },
+            '40%': { transform: 'translate(6px,-2px) rotate(1deg)' },
+            '60%': { transform: 'translate(-4px,1px) rotate(-1deg)' },
+            '80%': { transform: 'translate(4px,-1px) rotate(1deg)' },
+          },
+        },
+        animation: {
+          shake: 'shakeX .5s ease-in-out',
+          'fade-in-up': 'fadeInUp .5s ease-out forwards',
+          'pop-in': 'popIn .5s cubic-bezier(.34,1.56,.64,1) forwards',
+          'impact-shake': 'impactShake .4s ease-in-out',
+        },
+      },
+    },
+  };
+</script>
 
-<script src="js/tailwind.config.js"></script>
-<link rel="stylesheet" href="css/style.css">
+<style>
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    transition: background-color .45s ease, color .45s ease;
+  }
+  .display-font { font-family: 'Anton', sans-serif; letter-spacing: .02em; }
+  .mono-font { font-family: 'JetBrains Mono', monospace; }
+
+  /* transisi halus untuk semua elemen saat ganti tema */
+  * {
+    transition: background-color .45s ease, border-color .45s ease, color .45s ease, box-shadow .45s ease;
+  }
+
+  .bg-glow {
+    background-image: radial-gradient(circle at 50% 20%, rgba(255,209,102,.18), transparent 60%);
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .vs-fighting {
+    box-shadow: 0 0 0 rgba(255,209,102,0);
+    animation: pulseGlow 1s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 12px 2px rgba(255,209,102,.35); }
+    50% { box-shadow: 0 0 26px 8px rgba(255,209,102,.7); }
+  }
+
+  .typing-cursor::after {
+    content: '▍';
+    display: inline-block;
+    margin-left: 2px;
+    animation: blinkCursor 1s step-start infinite;
+    color: #ffd166;
+  }
+  .typing-done::after { content: ''; }
+  @keyframes blinkCursor { 50% { opacity: 0; } }
+
+  .card-corner {
+    border-width: 3px;
+    transition: box-shadow .3s ease, transform .3s ease, border-color .45s ease, background-color .45s ease;
+  }
+
+  #trashBtn.shake-trash { animation: shakeX .5s ease-in-out; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,209,102,.5); border-radius: 4px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+    background: #111827; color: #ffd166; padding: 10px 18px; border-radius: 999px;
+    font-size: 13px; font-family: 'Inter', sans-serif; opacity: 0; pointer-events: none;
+    transition: opacity .3s ease, transform .3s ease; z-index: 60; border: 1px solid rgba(255,209,102,.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
 </head>
 
-<body class="min-h-screen font-body text-slate-800 dark:text-slate-100">
+<body class="bg-neutral-100 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 bg-glow min-h-screen">
 
-  <!-- ======================= HEADER ======================= -->
-  <header class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 px-6 py-6 md:px-12 max-w-5xl mx-auto">
-    <div class="text-center sm:text-left">
-      <h1 class="font-display text-2xl md:text-4xl tracking-wide leading-none text-slate-900 dark:text-white">
-        BATU GUNTING KERTAS <span class="text-gold">UNLIMITED</span>
+<!-- ===== HEADER GLOBAL ===== -->
+<header class="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3">
+  <button id="trashBtn" title="Reset status AI sibuk"
+    class="w-10 h-10 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-neutral-300 dark:border-neutral-700 backdrop-blur flex items-center justify-center text-lg shadow hover:scale-105 transition">
+    🗑️
+  </button>
+  <button id="themeToggleBtn" title="Ganti tema"
+    class="w-10 h-10 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-neutral-300 dark:border-neutral-700 backdrop-blur flex items-center justify-center text-lg shadow hover:scale-105 transition">
+    <span id="themeIconSun">☀️</span>
+    <span id="themeIconMoon" class="hidden">🌙</span>
+  </button>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 pt-20 pb-10">
+
+  <!-- ===================================================== -->
+  <!-- START SCREEN -->
+  <!-- ===================================================== -->
+  <section id="start_screen" class="screen active">
+    <div class="text-center mb-12">
+      <h1 class="display-font text-5xl md:text-7xl leading-none">
+        BATU GUNTING KERTAS <span class="text-corner1">UNLIMITED</span>
       </h1>
-      <p class="text-[11px] md:text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 mt-2">
-        Arena pertarungan tanpa batas &mdash; diadili oleh Juri AI
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400 max-w-md mx-auto">
+        Ketik apa saja. AI Juri yang menentukan siapa yang menang, dan kenapa.
       </p>
     </div>
-
-    <!-- Grup tombol utilitas: hapus status AI sibuk + toggle tema -->
-    <div class="flex items-center gap-2">
-      <!-- Tombol Hapus Status AI Sibuk (localStorage) -->
-      <button id="clearStatusBtn" type="button"
-        class="shrink-0 flex items-center justify-center w-11 h-11 rounded-full border-2 border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 backdrop-blur hover:scale-110 hover:border-corner1 active:scale-95 transition-transform duration-200"
-        title="Reset status AI sibuk & skor kekuatan tersimpan (localStorage)"
-        aria-label="Reset status AI sibuk dan skor kekuatan">
-        <svg class="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12zM10 11v6M14 11v6"/>
-        </svg>
+    <div class="grid gap-4 max-w-sm mx-auto">
+      <button id="btnGoSingle" class="display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
+        SINGLEPLAYER
       </button>
-
-      <!-- Tombol Toggle Dark/Light Mode -->
-      <button id="themeToggle" type="button"
-        class="shrink-0 flex items-center justify-center w-11 h-11 rounded-full border-2 border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 backdrop-blur hover:scale-110 hover:border-gold active:scale-95 transition-transform duration-200"
-        aria-label="Ganti tema terang/gelap">
-        <!-- Icon matahari (tampil saat mode gelap aktif -> klik untuk ke terang) -->
-        <svg id="iconSun" class="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36 6.36-1.42-1.42M7.06 7.06 5.64 5.64m12.72 0-1.42 1.42M7.06 16.94l-1.42 1.42M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-        </svg>
-        <!-- Icon bulan (tampil saat mode terang aktif -> klik untuk ke gelap) -->
-        <svg id="iconMoon" class="w-5 h-5 hidden text-slate-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M21.75 15.25A9 9 0 1 1 8.75 2.25a7 7 0 0 0 13 13Z"/>
-        </svg>
+      <button id="btnGoMulti" class="display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg hover:brightness-110 active:scale-95 transition">
+        MULTIPLAYER
+      </button>
+      <button id="btnGoSettings" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-800 active:scale-95 transition">
+        SETTINGS
       </button>
     </div>
-  </header>
+  </section>
 
-  <!-- Toast notifikasi kecil (mis. saat status AI direset) -->
-  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-mono shadow-lg"></div>
+  <!-- ===================================================== -->
+  <!-- SETTINGS SCREEN -->
+  <!-- ===================================================== -->
+  <section id="settings_screen" class="screen">
+    <h2 class="display-font text-4xl mb-8 text-center">SETTINGS</h2>
+    <div class="max-w-sm mx-auto space-y-6">
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-neutral-500 dark:text-neutral-400">Nama Pemain (Singleplayer)</label>
+        <input id="settingsPlayerName" type="text" placeholder="Nama kamu"
+          class="w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-neutral-500 dark:text-neutral-400">Durasi Timer</label>
+        <select id="settingsTimerDuration" class="w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
+          <option value="60">1 Menit</option>
+          <option value="120">2 Menit</option>
+        </select>
+      </div>
+      <div class="flex items-center justify-between px-1">
+        <span class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">Mode Gelap</span>
+        <button id="settingsThemeSwitch" class="w-14 h-8 rounded-full bg-neutral-300 dark:bg-corner1 relative transition">
+          <span id="themeSwitchDot" class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
+        </button>
+      </div>
+      <button id="btnResetPowerScores" class="w-full py-3 rounded-xl border-2 border-neutral-400 dark:border-neutral-600 text-sm font-semibold hover:bg-neutral-200 dark:hover:bg-neutral-800 transition">
+        🏆 Hapus Semua Skor Kekuatan Tersimpan
+      </button>
+      <button id="btnBackFromSettings" class="w-full display-font text-xl py-3 rounded-2xl bg-neutral-800 dark:bg-gold text-white dark:text-neutral-900 active:scale-95 transition">
+        KEMBALI
+      </button>
+    </div>
+  </section>
 
-  <!-- ======================= MAIN ARENA ======================= -->
-  <main class="relative z-10 max-w-5xl mx-auto px-4 pb-16">
+  <!-- ===================================================== -->
+  <!-- SINGLEPLAYER SETUP SCREEN -->
+  <!-- ===================================================== -->
+  <section id="singleplayer_screen" class="screen">
+    <h2 class="display-font text-4xl mb-8 text-center">SINGLEPLAYER</h2>
+    <div class="max-w-sm mx-auto space-y-6 text-center">
+      <p class="text-neutral-600 dark:text-neutral-400">Lawan Juara Bertahan tanpa henti sampai waktu habis. Siapkan namamu!</p>
+      <input id="singleSetupName" type="text" placeholder="Nama pemain"
+        class="w-full px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold text-center">
+      <button id="btnStartSingle" class="w-full display-font text-2xl py-4 rounded-2xl bg-corner1 text-white shadow-lg active:scale-95 transition">
+        MULAI PERTARUNGAN
+      </button>
+      <button id="btnBackFromSingleSetup" class="text-sm text-neutral-500 hover:underline">← Kembali ke menu</button>
+    </div>
+  </section>
 
-    <!-- Nomor ronde -->
-    <div class="text-center mb-6">
-      <span class="inline-block font-mono text-[11px] tracking-widest uppercase bg-slate-200/80 dark:bg-slate-800/80 px-3 py-1 rounded-full text-slate-600 dark:text-slate-300">
-        RONDE #<span id="roundNumber">1</span>
-      </span>
+  <!-- ===================================================== -->
+  <!-- MULTIPLAYER SETUP SCREEN -->
+  <!-- ===================================================== -->
+  <section id="multiplayer_screen" class="screen">
+    <h2 class="display-font text-4xl mb-8 text-center">MULTIPLAYER</h2>
+    <div class="max-w-sm mx-auto space-y-4 text-center">
+      <p class="text-neutral-600 dark:text-neutral-400">Dua pemain, satu perangkat. Bergantian, jangan mengintip!</p>
+      <input id="multiSetupName1" type="text" placeholder="Nama Player 1"
+        class="w-full px-4 py-3 rounded-xl border-2 border-corner1 bg-white dark:bg-neutral-900 outline-none text-center">
+      <input id="multiSetupName2" type="text" placeholder="Nama Player 2"
+        class="w-full px-4 py-3 rounded-xl border-2 border-corner2 bg-white dark:bg-neutral-900 outline-none text-center">
+      <button id="btnStartMulti" class="w-full display-font text-2xl py-4 rounded-2xl bg-corner2 text-white shadow-lg active:scale-95 transition">
+        MULAI PERTARUNGAN
+      </button>
+      <button id="btnBackFromMultiSetup" class="text-sm text-neutral-500 hover:underline">← Kembali ke menu</button>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- PLAY SCREEN (arena pertarungan utama, dipakai kedua mode) -->
+  <!-- ===================================================== -->
+  <section id="play_screen" class="screen">
+
+    <!-- Timer & Skor -->
+    <div class="flex items-center justify-center gap-6 mb-6">
+      <div class="mono-font text-sm px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700">
+        ⏱️ <span id="timerDisplay">60</span>s
+      </div>
+      <div id="scoreDisplay" class="mono-font text-sm px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700"></div>
     </div>
 
-    <!-- Grid pertarungan -->
-    <div class="relative flex flex-col md:grid md:grid-cols-2 gap-6 md:gap-10 items-stretch">
+    <!-- Arena: kartu sudut + badge VS -->
+    <div class="relative grid grid-cols-1 md:grid-cols-2 gap-6 items-center mb-8">
 
-      <!-- Sudut 1: Juara bertahan -->
-      <div id="championCard"
-        class="relative rounded-2xl p-7 md:p-8 min-h-[200px] flex flex-col items-center justify-center text-center border-2 border-corner1/70 dark:border-corner1/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-xl">
-        <span class="absolute top-3 left-4 text-[10px] tracking-[0.25em] uppercase font-mono text-corner1">Juara Bertahan</span>
-        <div id="championText" class="font-display text-3xl md:text-5xl mt-4 break-words text-slate-900 dark:text-white">BATU</div>
-        <div id="championScore" class="text-[11px] font-mono text-slate-400 dark:text-slate-500 mt-2"></div>
+      <div id="cardChampion" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner1 shadow-xl">
+        <span class="mono-font text-xs uppercase text-corner1 font-semibold">Juara Bertahan</span>
+        <p id="championName" class="display-font text-3xl mt-1 break-words">Input Kosong</p>
+        <p id="championScore" class="mono-font text-xs mt-1 text-neutral-500 dark:text-neutral-400"></p>
       </div>
 
-      <!-- Badge VS -->
-      <div id="vsBadge" class="vs-badge">
-        <span>VS</span>
+      <!-- Badge VS: statis di antara kartu (mobile), absolute di tengah (desktop) -->
+      <div class="flex justify-center md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-10">
+        <div id="vsBadge" class="w-16 h-16 rotate-45 bg-gold flex items-center justify-center shadow-lg rounded-md">
+          <span class="display-font -rotate-45 text-neutral-900 text-lg">VS</span>
+        </div>
       </div>
 
-      <!-- Sudut 2: Penantang (form input) -->
-      <div id="challengerCard"
-        class="relative rounded-2xl p-7 md:p-8 min-h-[200px] flex flex-col items-center justify-center text-center border-2 border-corner2/70 dark:border-corner2/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-xl">
-        <span class="absolute top-3 left-4 text-[10px] tracking-[0.25em] uppercase font-mono text-corner2">Penantang</span>
-
-        <form id="battleForm" class="w-full mt-4 flex flex-col items-center gap-3">
-          <input
-            id="challengerInput"
-            type="text"
-            maxlength="40"
-            autocomplete="off"
-            placeholder="Ketik apa saja... (Goku, Pajak, Air)"
-            class="w-full text-center font-display text-xl md:text-2xl bg-transparent border-b-2 border-slate-300 dark:border-slate-600 focus:border-corner2 outline-none py-2 placeholder:font-body placeholder:text-sm placeholder:tracking-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white"
-          />
-          <div id="challengerHint" class="text-[11px] font-mono text-slate-400 dark:text-slate-500 min-h-[14px]"></div>
-          <button
-            id="attackBtn"
-            type="submit"
-            class="mt-1 px-6 py-2.5 rounded-full font-display tracking-wide text-white bg-corner2 hover:bg-blue-500 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200">
-            ⚔ SERANG!
-          </button>
-        </form>
+      <div id="cardChallenger" class="card-corner relative rounded-3xl p-6 bg-white dark:bg-neutral-900 border-corner2 shadow-xl">
+        <span class="mono-font text-xs uppercase text-corner2 font-semibold">Penantang</span>
+        <p id="challengerName" class="display-font text-3xl mt-1 break-words">?</p>
+        <p id="challengerHint" class="mono-font text-xs mt-1 text-neutral-500 dark:text-neutral-400"></p>
       </div>
     </div>
 
-    <!-- Indikator loading saat juri berpikir -->
-    <div id="loadingIndicator" class="hidden text-center mt-8">
-      <span class="font-mono text-sm text-slate-500 dark:text-slate-400">
-        Juri AI sedang menimbang<span id="dotsText"></span>
-      </span>
+    <!-- ==== Input area: SINGLEPLAYER ==== -->
+    <div id="singleInputArea" class="max-w-sm mx-auto hidden">
+      <div class="flex gap-2">
+        <input id="singleChallengeInput" type="text" placeholder="Ketik penantangmu..."
+          class="flex-1 px-4 py-3 rounded-xl border-2 border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 outline-none focus:border-gold">
+        <button id="btnSingleAttack" class="px-6 py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition">
+          Tantang!
+        </button>
+      </div>
     </div>
 
-    <!-- Panel keputusan juri -->
-    <div id="verdictPanel" class="hidden mt-8 rounded-2xl border-2 border-gold/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-6 md:p-8 text-center shadow-xl">
-      <p class="text-[11px] tracking-[0.3em] uppercase font-mono text-gold mb-2">Keputusan Juri AI</p>
-      <p id="verdictWinner" class="font-display text-2xl md:text-3xl text-slate-900 dark:text-white mb-3"></p>
-      <p id="verdictReason" class="font-mono text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl mx-auto"></p>
-      <p id="verdictProvider" class="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-3"></p>
+    <!-- ==== Input area: MULTIPLAYER step 1 (Player 1) ==== -->
+    <div id="multiStep1Area" class="max-w-sm mx-auto hidden">
+      <p class="text-center text-sm mb-2 text-corner1 font-semibold" id="multiStep1Label">Giliran Player 1</p>
+      <input id="multiAttackInput1" type="text" placeholder="Serangan Player 1..."
+        class="w-full px-4 py-3 rounded-xl border-2 border-corner1 bg-white dark:bg-neutral-900 outline-none text-center mb-2">
+      <button id="btnMultiLock1" class="w-full py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition">
+        Kunci Input / Lanjut
+      </button>
+    </div>
+
+    <!-- ==== Input area: MULTIPLAYER step 2 (Player 2) ==== -->
+    <div id="multiStep2Area" class="max-w-sm mx-auto hidden">
+      <p class="text-center text-sm mb-2 text-corner2 font-semibold" id="multiStep2Label">Giliran Player 2</p>
+      <input id="multiAttackInput2" type="text" placeholder="Serangan Player 2..."
+        class="w-full px-4 py-3 rounded-xl border-2 border-corner2 bg-white dark:bg-neutral-900 outline-none text-center mb-2">
+      <button id="btnMultiAttack2" class="w-full py-3 rounded-xl display-font text-xl bg-corner2 text-white active:scale-95 transition">
+        Serang!
+      </button>
+    </div>
+
+    <!-- Loading indikator (hanya muncul saat panggilan API asli) -->
+    <div id="juri_loading_screen" class="hidden text-center py-6">
+      <div class="inline-block w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mb-3"></div>
+      <p class="mono-font text-sm text-neutral-500 dark:text-neutral-400" id="loadingText">Juri AI sedang menimbang...</p>
+    </div>
+
+    <!-- Panel hasil keputusan -->
+    <div id="resultPanel" class="hidden max-w-lg mx-auto mt-6 p-5 rounded-2xl bg-white dark:bg-neutral-900 border-2 border-gold shadow-xl">
+      <p class="display-font text-2xl mb-1"><span id="resultWinnerName"></span> MENANG!</p>
+      <p id="resultReason" class="mono-font text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"></p>
+      <p id="resultProvider" class="mono-font text-[11px] mt-2 text-neutral-400"></p>
     </div>
 
     <!-- Riwayat pertarungan -->
-    <section class="mt-12">
-      <h2 class="font-display text-base md:text-lg tracking-wide text-slate-500 dark:text-slate-400 mb-3">
-        CATATAN PERTARUNGAN
-      </h2>
-      <ul id="historyLog" class="space-y-3 max-h-64 overflow-y-auto pr-2"></ul>
-    </section>
-  </main>
+    <div class="max-w-lg mx-auto mt-8">
+      <p class="mono-font text-xs uppercase text-neutral-500 mb-2">Riwayat Ronde</p>
+      <ul id="historyList" class="mono-font text-xs space-y-1 max-h-40 overflow-y-auto pr-1"></ul>
+    </div>
+  </section>
 
-  <script>
-  // =========================================================================
-  // BAGIAN 1: KONFIGURASI MULTI-PROVIDER JURI AI (Gemini + Groq)
-  // =========================================================================
-  // ⬇️⬇️⬇️ MASUKKAN 3 API KEY ANDA DI SINI ⬇️⬇️⬇️
-  // Urutan providers = urutan prioritas pertama kali dicoba (selama semuanya
-  // sedang "bebas"/tidak sibuk). Kalau salah satu sibuk (503/429), otomatis
-  // dilewati dan dicoba provider berikutnya di daftar ini.
-  const PROVIDERS = [
-    { id: "gemini",  label: "Gemini",        type: "gemini", apiKey: "MASUKKAN_API_KEY_GOOGLE_DI_SINI", model: "gemini-2.5-flash-lite" },
-    { id: "groq-1",  label: "Groq (Key 1)",  type: "groq",   apiKey: "MASUKKAN_API_KEY_GROQ_1_DI_SINI", model: "openai/gpt-oss-120b" },
-    { id: "groq-2",  label: "Groq (Key 2)",  type: "groq",   apiKey: "MASUKKAN_API_KEY_GROQ_2_DI_SINI", model: "openai/gpt-oss-120b" },
-  ];
+  <!-- ===================================================== -->
+  <!-- FINIS SCREEN -->
+  <!-- ===================================================== -->
+  <section id="finis_screen" class="screen text-center">
+    <h2 class="display-font text-3xl text-gold mb-2">WAKTU HABIS!</h2>
+    <p class="display-font text-5xl md:text-6xl mb-6" id="finalWinnerText">-</p>
+    <div id="finalScoreBoard" class="mono-font text-sm mb-8 space-y-1"></div>
+    <div class="max-w-sm mx-auto grid gap-3">
+      <button id="btnPlayAgain" class="display-font text-xl py-3 rounded-2xl bg-corner1 text-white active:scale-95 transition">MAIN LAGI</button>
+      <button id="btnBackToMenuFromFinis" class="display-font text-xl py-3 rounded-2xl border-2 border-neutral-400 dark:border-neutral-600 active:scale-95 transition">MENU UTAMA</button>
+    </div>
+  </section>
 
-  // =========================================================================
-  // Sistem "cooldown" berbasis localStorage: saat sebuah provider ketahuan
-  // sibuk (503/429/500), kita simpan waktu "boleh dicoba lagi" untuknya, jadi
-  // ronde berikutnya otomatis melewati provider itu dulu tanpa perlu menunggu
-  // errornya lagi. Tombol sampah di pojok atas menghapus status ini.
-  // =========================================================================
-  const COOLDOWN_KEY = "bgku_ai_cooldowns";
-  const COOLDOWN_DURATION_MS = 90 * 1000; // provider dianggap "sibuk" selama 90 detik
+</main>
 
-  function getCooldowns() {
-    try {
-      const raw = localStorage.getItem(COOLDOWN_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================================================================
+   BATU GUNTING KERTAS UNLIMITED — Frontend Logic (Vanilla JS)
+   ========================================================================= */
+
+/* ---------- KEY LOCALSTORAGE ---------- */
+const THEME_KEY = 'bgku_theme';
+const PLAYER_NAME_KEY = 'bgku_player_name';
+const TIMER_DURATION_KEY = 'bgku_timer_duration';
+const DUEL_CACHE_KEY = 'bgku_duel_cache';
+const COOLDOWN_KEY = 'bgku_ai_cooldowns';
+const COOLDOWN_DURATION_MS = 90 * 1000;
+const POWER_SCORE_KEY = 'bgku_power_scores';
+
+const PROVIDERS_META = [
+  { id: 'gemini', label: 'Gemini' },
+  { id: 'groq-1', label: 'Groq (Key 1)' },
+  { id: 'groq-2', label: 'Groq (Key 2)' },
+];
+
+/* ---------- ELEMEN DOM UTAMA ---------- */
+const screens = document.querySelectorAll('.screen');
+const htmlEl = document.documentElement;
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+const themeIconSun = document.getElementById('themeIconSun');
+const themeIconMoon = document.getElementById('themeIconMoon');
+const trashBtn = document.getElementById('trashBtn');
+const toastEl = document.getElementById('toast');
+
+const timerDisplay = document.getElementById('timerDisplay');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const cardChampion = document.getElementById('cardChampion');
+const cardChallenger = document.getElementById('cardChallenger');
+const championNameEl = document.getElementById('championName');
+const championScoreEl = document.getElementById('championScore');
+const challengerNameEl = document.getElementById('challengerName');
+const challengerHint = document.getElementById('challengerHint');
+const vsBadge = document.getElementById('vsBadge');
+
+const singleInputArea = document.getElementById('singleInputArea');
+const singleChallengeInput = document.getElementById('singleChallengeInput');
+const multiStep1Area = document.getElementById('multiStep1Area');
+const multiStep2Area = document.getElementById('multiStep2Area');
+const multiAttackInput1 = document.getElementById('multiAttackInput1');
+const multiAttackInput2 = document.getElementById('multiAttackInput2');
+
+const juriLoadingScreen = document.getElementById('juri_loading_screen');
+const resultPanel = document.getElementById('resultPanel');
+const resultWinnerName = document.getElementById('resultWinnerName');
+const resultReason = document.getElementById('resultReason');
+const resultProvider = document.getElementById('resultProvider');
+const historyList = document.getElementById('historyList');
+
+/* ---------- STATE GAME ---------- */
+let state = {
+  mode: null,          // 'single' | 'multi'
+  champion: { name: 'Input Kosong', score: 0 }, // dipakai singleplayer
+  scoreP1: 0, scoreP2: 0, nameP1: 'Player 1', nameP2: 'Player 2', // dipakai multiplayer
+  timerRemaining: 60,
+  timerInterval: null,
+  roundBusy: false,
+};
+
+/* =========================================================================
+   HELPER: NAVIGASI ANTAR LAYAR
+   ========================================================================= */
+function showScreen(id) {
+  screens.forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* =========================================================================
+   TEMA (DARK / LIGHT)
+   ========================================================================= */
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    htmlEl.classList.add('dark');
+    themeIconSun.classList.add('hidden');
+    themeIconMoon.classList.remove('hidden');
+    document.getElementById('themeSwitchDot').style.transform = 'translateX(24px)';
+  } else {
+    htmlEl.classList.remove('dark');
+    themeIconSun.classList.remove('hidden');
+    themeIconMoon.classList.add('hidden');
+    document.getElementById('themeSwitchDot').style.transform = 'translateX(0)';
   }
-  function saveCooldowns(obj) {
-    try { localStorage.setItem(COOLDOWN_KEY, JSON.stringify(obj)); } catch (e) { /* localStorage tidak tersedia, abaikan */ }
-  }
-  function markProviderBusy(providerId) {
-    const cds = getCooldowns();
-    cds[providerId] = Date.now() + COOLDOWN_DURATION_MS;
-    saveCooldowns(cds);
-  }
-  function clearProviderBusy(providerId) {
-    const cds = getCooldowns();
-    if (cds[providerId]) {
-      delete cds[providerId];
-      saveCooldowns(cds);
-    }
-  }
-  function clearAllCooldowns() {
-    try { localStorage.removeItem(COOLDOWN_KEY); } catch (e) { /* abaikan */ }
-  }
+}
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(saved);
+}
+function toggleTheme() {
+  const isDark = htmlEl.classList.contains('dark');
+  const next = isDark ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
+themeToggleBtn.addEventListener('click', toggleTheme);
+document.getElementById('settingsThemeSwitch').addEventListener('click', toggleTheme);
 
-  // Susun urutan providers: yang sedang "bebas" duluan, yang sedang cooldown
-  // ditaruh di belakang (diurutkan dari yang paling cepat selesai cooldown-nya)
-  // sebagai jaga-jaga terakhir kalau semua provider lain ikut gagal.
-  function getProviderOrder() {
-    const cds = getCooldowns();
-    const now = Date.now();
-    const free = PROVIDERS.filter((p) => !(cds[p.id] && cds[p.id] > now));
-    const busy = PROVIDERS
-      .filter((p) => cds[p.id] && cds[p.id] > now)
-      .sort((a, b) => cds[a.id] - cds[b.id]);
-    return [...free, ...busy];
-  }
+/* =========================================================================
+   TOAST NOTIFIKASI KECIL
+   ========================================================================= */
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
 
-  // =========================================================================
-  // Sistem "skor kekuatan" (power score) berbasis localStorage: setiap nama
-  // yang pernah dinilai AI disimpan skornya (1-100). Kalau KEDUA nama yang
-  // bertarung di suatu ronde sama-sama sudah pernah tercatat, game langsung
-  // membandingkan skornya secara instan TANPA memanggil AI sama sekali.
-  // Kalau salah satu/kedua nama masih baru, AI tetap dipanggil seperti biasa
-  // sambil sekalian diminta memberi skor untuk nama yang belum tercatat.
-  // =========================================================================
-  const POWER_SCORE_KEY = "bgku_power_scores";
-
-  function getPowerScores() {
-    try {
-      const raw = localStorage.getItem(POWER_SCORE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
-  }
-  function savePowerScores(obj) {
-    try { localStorage.setItem(POWER_SCORE_KEY, JSON.stringify(obj)); } catch (e) { /* abaikan */ }
-  }
-  function getStoredScore(name) {
-    const scores = getPowerScores();
-    const value = scores[name.trim().toLowerCase()];
-    return typeof value === "number" && !isNaN(value) ? value : null;
-  }
-  function setStoredScore(name, value) {
-    const scores = getPowerScores();
-    scores[name.trim().toLowerCase()] = value;
-    savePowerScores(scores);
-  }
-  function clearAllPowerScores() {
-    try { localStorage.removeItem(POWER_SCORE_KEY); } catch (e) { /* abaikan */ }
-  }
-
-  // ---- Pemanggil masing-masing jenis provider (mengembalikan teks mentah) ----
-  async function callGemini(provider, prompt) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${provider.model}:generateContent?key=${provider.apiKey}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      const err = new Error(data.error?.message || `${provider.label} error (status ${response.status})`);
-      err.status = response.status;
-      throw err;
-    }
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  }
-
-  async function callGroq(provider, prompt) {
-    const url = "https://api.groq.com/openai/v1/chat/completions";
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${provider.apiKey}`
-      },
-      body: JSON.stringify({
-        model: provider.model,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      const err = new Error(data.error?.message || `${provider.label} error (status ${response.status})`);
-      err.status = response.status;
-      throw err;
-    }
-    return data.choices?.[0]?.message?.content || "";
-  }
-
-  async function callProvider(provider, prompt) {
-    return provider.type === "gemini" ? callGemini(provider, prompt) : callGroq(provider, prompt);
-  }
-
-  /**
-   * getJuryDecision(challenger1, challenger2)
-   * Kalau kedua nama sudah punya skor kekuatan tersimpan -> putuskan instan
-   * tanpa panggil AI. Kalau belum, panggil AI seperti biasa (dengan fallback
-   * antar-provider) sekaligus minta AI memberi skor untuk nama yang baru.
-   * Mengembalikan Promise -> { winner: string, reason: string, providerLabel: string }
-   */
-  async function getJuryDecision(challenger1, challenger2) {
-    // ---- Cek dulu: kalau KEDUA nama sudah pernah tercatat, putuskan instan ----
-    const knownScore1 = getStoredScore(challenger1);
-    const knownScore2 = getStoredScore(challenger2);
-
-    if (knownScore1 !== null && knownScore2 !== null) {
-      const winner =
-        knownScore1 === knownScore2
-          ? (Math.random() < 0.5 ? challenger1 : challenger2)
-          : (knownScore1 > knownScore2 ? challenger1 : challenger2);
-      const reason =
-        `Keputusan instan dari data tersimpan: ${challenger1} (skor ${knownScore1}) ` +
-        `vs ${challenger2} (skor ${knownScore2}). Skor lebih tinggi menang!`;
-      return { winner, reason, providerLabel: "Data Tersimpan (Lokal)" };
-    }
-
-    // ---- Kalau salah satu/kedua nama masih baru, tetap tanya AI ----
-    const prompt =
-      `Kamu adalah "Juri AI" dalam game "Batu Gunting Kertas Unlimited". ` +
-      `Dua kandidat bertarung: "${challenger1}" melawan "${challenger2}". ` +
-      `Tentukan siapa pemenangnya secara kreatif (boleh logis, boleh absurd/lucu, ` +
-      `seperti dalam permainan anak-anak "apa saja vs apa saja"). ` +
-      `Selain itu, beri juga "skor kekuatan" 1-100 untuk MASING-MASING kandidat ` +
-      `(semakin kuat/dominan sesuatu, semakin tinggi skornya). ` +
-      `Balas HANYA dengan JSON valid tanpa markdown/backtick, format persis: ` +
-      `{"winner": "<salah satu dari kedua nama persis seperti input>", ` +
-      `"reason": "<alasan singkat, maksimal 2 kalimat, dengan gaya lucu>", ` +
-      `"power1": <angka 1-100 untuk "${challenger1}">, ` +
-      `"power2": <angka 1-100 untuk "${challenger2}">}`;
-
-    const order = getProviderOrder();
-    let lastError = null;
-
-    for (const provider of order) {
-      try {
-        const rawFromProvider = await callProvider(provider, prompt);
-        const rawText = rawFromProvider.replace(/```json|```/g, "").trim();
-
-        let parsed;
-        try {
-          parsed = JSON.parse(rawText);
-        } catch (e) {
-          throw new Error(`${provider.label} membalas dengan format yang tidak terbaca.`);
-        }
-
-        if (!parsed.winner || !parsed.reason) {
-          throw new Error(`Format respons ${provider.label} tidak sesuai.`);
-        }
-
-        // Validasi: pastikan pemenang memang salah satu dari dua kandidat.
-        const w = parsed.winner.trim();
-        const validWinner =
-          w.toLowerCase() === challenger1.toLowerCase() ? challenger1 :
-          w.toLowerCase() === challenger2.toLowerCase() ? challenger2 :
-          (Math.random() < 0.5 ? challenger1 : challenger2); // fallback jika AI meleset format
-
-        // Simpan skor kekuatan HANYA untuk nama yang belum pernah tercatat,
-        // supaya skor yang sudah ada tidak berubah-ubah tiap ronde (konsisten).
-        if (knownScore1 === null) {
-          const p1 = Number(parsed.power1);
-          setStoredScore(challenger1, (!isNaN(p1) && p1 >= 1 && p1 <= 100) ? p1 : Math.floor(Math.random() * 100) + 1);
-        }
-        if (knownScore2 === null) {
-          const p2 = Number(parsed.power2);
-          setStoredScore(challenger2, (!isNaN(p2) && p2 >= 1 && p2 <= 100) ? p2 : Math.floor(Math.random() * 100) + 1);
-        }
-
-        clearProviderBusy(provider.id); // sukses -> provider ini terbukti sudah tidak sibuk
-        return { winner: validWinner, reason: parsed.reason, providerLabel: provider.label };
-
-      } catch (err) {
-        lastError = err;
-        // Hanya tandai "sibuk" untuk error yang bersifat sementara.
-        const isTemporary = err.status === 503 || err.status === 429 || err.status === 500;
-        if (isTemporary) {
-          markProviderBusy(provider.id);
-        }
-        continue; // coba provider berikutnya di daftar
-      }
-    }
-
-    throw lastError || new Error("Semua AI Juri sedang sibuk. Coba lagi sebentar lagi.");
-  }
-
-  /**
-   * cekModelTersedia(providerId)
-   * Fungsi bantu (opsional, khusus Gemini) untuk mengecek API key valid &
-   * melihat daftar model yang bisa dipakai. Panggil dari console browser:
-   *   cekModelTersedia("gemini")
-   */
-  async function cekModelTersedia(providerId = "gemini") {
-    const provider = PROVIDERS.find((p) => p.id === providerId);
-    if (!provider || provider.type !== "gemini") {
-      console.error("cekModelTersedia hanya berlaku untuk provider bertipe Gemini.");
-      return;
-    }
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${provider.apiKey}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || "Gagal verifikasi");
-      console.log("API Key valid. Model tersedia:", data.models.map((m) => m.name));
-    } catch (err) {
-      console.error("Cek model gagal:", err.message);
-    }
-  }
-
-  // =========================================================================
-  // BAGIAN 2: LOGIKA & STATE GAME (Vanilla JS, tanpa jQuery)
-  // =========================================================================
-  document.addEventListener("DOMContentLoaded", function () {
-    let currentChampion = "Batu";
-    let roundNumber = 1;
-    let isProcessing = false;
-    let dotsInterval = null;
-    let typeInterval = null;
-
-    // ---- Referensi elemen ----
-    const htmlEl = document.documentElement;
-    const themeToggleBtn = document.getElementById("themeToggle");
-    const iconSun = document.getElementById("iconSun");
-    const iconMoon = document.getElementById("iconMoon");
-    const clearStatusBtn = document.getElementById("clearStatusBtn");
-    const toast = document.getElementById("toast");
-    let toastTimeout = null;
-
-    const roundNumberEl = document.getElementById("roundNumber");
-    const championCard = document.getElementById("championCard");
-    const championText = document.getElementById("championText");
-    const championScoreEl = document.getElementById("championScore");
-    const vsBadge = document.getElementById("vsBadge");
-    const challengerCard = document.getElementById("challengerCard");
-    const battleForm = document.getElementById("battleForm");
-    const challengerInput = document.getElementById("challengerInput");
-    const challengerHint = document.getElementById("challengerHint");
-    const attackBtn = document.getElementById("attackBtn");
-
-    const loadingIndicator = document.getElementById("loadingIndicator");
-    const dotsText = document.getElementById("dotsText");
-    const verdictPanel = document.getElementById("verdictPanel");
-    const verdictWinner = document.getElementById("verdictWinner");
-    const verdictReason = document.getElementById("verdictReason");
-    const verdictProvider = document.getElementById("verdictProvider");
-    const historyLog = document.getElementById("historyLog");
-
-    // ---- Toggle tema terang/gelap ----
-    function updateThemeIcon() {
-      const isDark = htmlEl.classList.contains("dark");
-      iconSun.classList.toggle("hidden", !isDark);
-      iconMoon.classList.toggle("hidden", isDark);
-    }
-    updateThemeIcon();
-
-    themeToggleBtn.addEventListener("click", function () {
-      htmlEl.classList.toggle("dark");
-      updateThemeIcon();
-    });
-
-    // ---- Toast notifikasi singkat ----
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.remove("hidden", "animate-fade-in-up");
-      void toast.offsetWidth; // reset animasi supaya bisa diputar ulang
-      toast.classList.add("animate-fade-in-up");
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => toast.classList.add("hidden"), 2200);
-    }
-
-    // ---- Tombol sampah: reset status "sibuk" AI + skor kekuatan tersimpan ----
-    // Diberi konfirmasi karena tindakan ini menghapus data permanen (skor
-    // kekuatan semua nama yang pernah tercatat), bukan cuma status sementara.
-    clearStatusBtn.addEventListener("click", function () {
-      const yakin = window.confirm(
-        "Reset status AI sibuk (cooldown) DAN semua skor kekuatan (power score) yang tersimpan?\n\n" +
-        "Semua nama yang pernah tercatat skornya akan dinilai ulang dari nol oleh AI. Tindakan ini tidak bisa dibatalkan."
-      );
-      if (!yakin) return;
-
-      clearAllCooldowns();
-      clearAllPowerScores();
-
-      updateChampionScoreDisplay();
-      updateChallengerHint();
-
-      clearStatusBtn.classList.add("animate-shake");
-      setTimeout(() => clearStatusBtn.classList.remove("animate-shake"), 500);
-      showToast("Status AI & skor kekuatan sudah direset ✔");
-    });
-
-    // ---- Titik-titik animasi loading ----
-    function startLoadingDots() {
-      let count = 0;
-      dotsText.textContent = "";
-      dotsInterval = setInterval(function () {
-        count = (count + 1) % 4;
-        dotsText.textContent = ".".repeat(count);
-      }, 400);
-    }
-    function stopLoadingDots() {
-      clearInterval(dotsInterval);
-      dotsText.textContent = "";
-    }
-
-    // ---- Efek mengetik (typewriter) untuk alasan juri ----
-    function typeWriter(el, text, speed, callback) {
-      el.textContent = "";
-      el.classList.remove("typing-done");
-      el.classList.add("typing-cursor");
-      let i = 0;
-      clearInterval(typeInterval);
-      typeInterval = setInterval(function () {
-        if (i < text.length) {
-          el.textContent += text.charAt(i);
-          i++;
-        } else {
-          clearInterval(typeInterval);
-          el.classList.remove("typing-cursor");
-          el.classList.add("typing-done");
-          if (callback) callback();
-        }
-      }, speed);
-    }
-
-    // ---- Tambah entri ke log riwayat (pakai textContent agar aman dari injeksi HTML) ----
-    function addHistory(champion, challenger, winner, reason, providerLabel) {
-      const li = document.createElement("li");
-      li.className = "border-l-2 border-slate-300 dark:border-slate-700 pl-3 py-1 animate-fade-in-up";
-
-      const lineMain = document.createElement("div");
-      lineMain.className = "text-sm text-slate-700 dark:text-slate-300";
-      lineMain.textContent = `Ronde ${roundNumber}: ${champion} vs ${challenger} → ${winner} menang`;
-
-      const lineReason = document.createElement("div");
-      lineReason.className = "text-xs italic text-slate-400 dark:text-slate-500 font-mono";
-      lineReason.textContent = `${reason} — dijawab oleh ${providerLabel}`;
-
-      li.appendChild(lineMain);
-      li.appendChild(lineReason);
-      historyLog.prepend(li);
-    }
-
-    // ---- Tampilan skor kekuatan Juara Bertahan (dari localStorage, kalau ada) ----
-    function updateChampionScoreDisplay() {
-      const score = getStoredScore(currentChampion);
-      championScoreEl.textContent = score !== null ? `⚡ Skor kekuatan: ${score}` : "";
-    }
-    updateChampionScoreDisplay(); // tampilkan status awal saat halaman dibuka
-
-    // ---- Hint real-time saat mengetik: kasih tahu kalau nama sudah pernah tercatat ----
-    function updateChallengerHint() {
-      const val = challengerInput.value.trim();
-      if (!val) {
-        challengerHint.textContent = "";
-        return;
-      }
-      const score = getStoredScore(val);
-      challengerHint.textContent = score !== null ? `⚡ Tersimpan, skor: ${score}` : "";
-    }
-    challengerInput.addEventListener("input", updateChallengerHint);
-
-    // ---- Reset tampilan sebelum ronde baru ----
-    function resetCorners() {
-      championCard.classList.remove("ring-4", "ring-gold");
-      challengerCard.classList.remove("ring-4", "ring-gold");
-    }
-
-    // ---- Alur utama satu ronde pertarungan ----
-    function startBattle(challenger) {
-      isProcessing = true;
-      resetCorners();
-      attackBtn.disabled = true;
-
-      // Cek lebih dulu: kalau kedua nama sudah punya skor tersimpan, hasilnya
-      // akan instan (lihat getJuryDecision) -> loading & pulse VS dilewati
-      // sepenuhnya, bukan cuma disembunyikan belakangan.
-      const akanInstan = getStoredScore(currentChampion) !== null && getStoredScore(challenger) !== null;
-
-      verdictPanel.classList.add("hidden");
-      verdictPanel.classList.remove("animate-fade-in-up");
-
-      if (!akanInstan) {
-        vsBadge.classList.add("vs-fighting");
-        loadingIndicator.classList.remove("hidden");
-        startLoadingDots();
-      }
-
-      getJuryDecision(currentChampion, challenger)
-        .then(function (result) {
-          if (!akanInstan) {
-            stopLoadingDots();
-            vsBadge.classList.remove("vs-fighting");
-            loadingIndicator.classList.add("hidden");
-          }
-          showVerdict(currentChampion, challenger, result);
-        })
-        .catch(function (err) {
-          if (!akanInstan) {
-            stopLoadingDots();
-            vsBadge.classList.remove("vs-fighting");
-            loadingIndicator.classList.add("hidden");
-          }
-
-          verdictWinner.textContent = "Gagal Menghubungi Juri AI";
-          verdictReason.textContent = err.message || "Terjadi kesalahan tak terduga.";
-          verdictProvider.textContent = "";
-          verdictPanel.classList.remove("hidden");
-          verdictPanel.classList.add("animate-fade-in-up");
-
-          isProcessing = false;
-          attackBtn.disabled = false;
-        });
-    }
-
-    // ---- Menampilkan hasil keputusan juri lalu lanjut ke ronde berikutnya ----
-    function showVerdict(champion, challenger, result) {
-      const winner = result.winner;
-      const challengerWins = winner.toLowerCase() === challenger.toLowerCase();
-
-      verdictWinner.textContent = winner.toUpperCase() + " MENANG!";
-      verdictProvider.textContent = `Dijawab oleh: ${result.providerLabel}`;
-
-      if (challengerWins) {
-        challengerCard.classList.add("ring-4", "ring-gold");
-      } else {
-        championCard.classList.add("ring-4", "ring-gold");
-      }
-
-      verdictPanel.classList.remove("hidden");
-      verdictPanel.classList.add("animate-fade-in-up");
-
-      typeWriter(verdictReason, result.reason, 22, function () {
-        setTimeout(function () {
-          addHistory(champion, challenger, winner, result.reason, result.providerLabel);
-
-          currentChampion = winner;
-          roundNumber++;
-
-          roundNumberEl.textContent = roundNumber;
-          championText.textContent = currentChampion.toUpperCase();
-          updateChampionScoreDisplay();
-          challengerInput.value = "";
-          updateChallengerHint();
-          resetCorners();
-
-          isProcessing = false;
-          attackBtn.disabled = false;
-          challengerInput.focus();
-        }, 1600);
-      });
-    }
-
-    // ---- Handler submit form ----
-    battleForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (isProcessing) return;
-
-      const challenger = challengerInput.value.trim();
-      if (!challenger) {
-        challengerInput.classList.add("animate-shake");
-        setTimeout(() => challengerInput.classList.remove("animate-shake"), 500);
-        return;
-      }
-
-      attackBtn.classList.add("animate-shake");
-      setTimeout(() => attackBtn.classList.remove("animate-shake"), 500);
-
-      startBattle(challenger);
-    });
+/* =========================================================================
+   SISTEM COOLDOWN PROVIDER (status "sibuk", tersimpan di localStorage)
+   ========================================================================= */
+function getCooldowns() {
+  try { return JSON.parse(localStorage.getItem(COOLDOWN_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveCooldowns(obj) {
+  localStorage.setItem(COOLDOWN_KEY, JSON.stringify(obj));
+}
+function markProviderBusy(id) {
+  const cd = getCooldowns();
+  cd[id] = Date.now() + COOLDOWN_DURATION_MS;
+  saveCooldowns(cd);
+}
+function clearProviderBusy(id) {
+  const cd = getCooldowns();
+  if (cd[id]) { delete cd[id]; saveCooldowns(cd); }
+}
+function clearAllCooldowns() {
+  localStorage.removeItem(COOLDOWN_KEY);
+}
+// Provider yang bebas dicoba dulu; provider yang masih cooldown ditaruh di
+// belakang, diurutkan dari yang paling cepat pulih.
+function getProviderOrder() {
+  const cd = getCooldowns();
+  const now = Date.now();
+  const free = [];
+  const busy = [];
+  PROVIDERS_META.forEach(p => {
+    const until = cd[p.id];
+    if (until && until > now) busy.push({ id: p.id, until });
+    else free.push(p.id);
   });
-  </script>
+  busy.sort((a, b) => a.until - b.until);
+  return free.concat(busy.map(b => b.id));
+}
+
+trashBtn.addEventListener('click', () => {
+  clearAllCooldowns();
+  trashBtn.classList.add('shake-trash');
+  setTimeout(() => trashBtn.classList.remove('shake-trash'), 500);
+  toast('Status AI sibuk sudah direset ✔');
+});
+
+document.getElementById('btnResetPowerScores').addEventListener('click', () => {
+  clearAllPowerScores();
+  toast('Semua skor kekuatan tersimpan sudah dihapus ✔');
+});
+
+/* =========================================================================
+   SISTEM POWER SCORE (skor kekuatan permanen per nama)
+   ========================================================================= */
+function getAllPowerScores() {
+  try { return JSON.parse(localStorage.getItem(POWER_SCORE_KEY)) || {}; }
+  catch { return {}; }
+}
+function getStoredScore(name) {
+  const scores = getAllPowerScores();
+  const key = normalizeName(name);
+  return Object.prototype.hasOwnProperty.call(scores, key) ? scores[key] : null;
+}
+function setStoredScore(name, value) {
+  const scores = getAllPowerScores();
+  const key = normalizeName(name);
+  // Skor yang sudah ada tidak ditimpa, supaya konsisten antar ronde.
+  if (!Object.prototype.hasOwnProperty.call(scores, key)) {
+    scores[key] = value;
+    localStorage.setItem(POWER_SCORE_KEY, JSON.stringify(scores));
+  }
+}
+function clearAllPowerScores() {
+  localStorage.removeItem(POWER_SCORE_KEY);
+}
+function normalizeName(s) {
+  return (s || '').trim().toLowerCase();
+}
+
+/* =========================================================================
+   CACHE DUEL (localStorage) — duel yang sama tidak perlu panggil AI lagi
+   ========================================================================= */
+function duelCacheKeyFor(a, b) {
+  return [normalizeName(a), normalizeName(b)].sort().join('__');
+}
+function getDuelCacheAll() {
+  try { return JSON.parse(localStorage.getItem(DUEL_CACHE_KEY)) || {}; }
+  catch { return {}; }
+}
+function getDuelCache(a, b) {
+  const all = getDuelCacheAll();
+  return all[duelCacheKeyFor(a, b)] || null;
+}
+function saveDuelCache(a, b, data) {
+  const all = getDuelCacheAll();
+  all[duelCacheKeyFor(a, b)] = data;
+  localStorage.setItem(DUEL_CACHE_KEY, JSON.stringify(all));
+}
+
+/* =========================================================================
+   EFEK: SHAKE VALIDASI INPUT KOSONG
+   ========================================================================= */
+function shakeInput(el) {
+  el.classList.add('animate-shake');
+  setTimeout(() => el.classList.remove('animate-shake'), 500);
+}
+
+/* =========================================================================
+   EFEK: TYPEWRITER UNTUK ALASAN JURI
+   ========================================================================= */
+function typeWriter(text, el, onDone) {
+  el.textContent = '';
+  el.classList.remove('typing-done');
+  el.classList.add('typing-cursor');
+  let i = 0;
+  const speed = 18;
+  function step() {
+    if (i < text.length) {
+      el.textContent += text.charAt(i);
+      i++;
+      setTimeout(step, speed);
+    } else {
+      el.classList.remove('typing-cursor');
+      el.classList.add('typing-done');
+      if (onDone) onDone();
+    }
+  }
+  step();
+}
+
+/* =========================================================================
+   EFEK: HIGHLIGHT PEMENANG (ring gold) + RESET RONDE
+   ========================================================================= */
+function resetRonde() {
+  cardChampion.classList.remove('ring-4', 'ring-gold');
+  cardChallenger.classList.remove('ring-4', 'ring-gold');
+  resultPanel.classList.add('hidden');
+  singleChallengeInput.value = '';
+  multiAttackInput1.value = '';
+  multiAttackInput2.value = '';
+}
+
+/* =========================================================================
+   RIWAYAT PERTARUNGAN — WAJIB pakai createElement + textContent (anti-XSS)
+   ========================================================================= */
+function appendHistory(nameA, nameB, winner) {
+  const li = document.createElement('li');
+  li.className = 'px-2 py-1 rounded bg-neutral-200/60 dark:bg-neutral-800/60';
+
+  const textNode = document.createElement('span');
+  textNode.textContent = `${nameA} vs ${nameB} → ${winner} menang`;
+
+  li.appendChild(textNode);
+  historyList.insertBefore(li, historyList.firstChild);
+}
+
+/* =========================================================================
+   INTI: MEMINTA KEPUTUSAN JURI
+   Urutan: (1) cache duel → (2) power score kedua nama sudah ada → (3) API
+   ========================================================================= */
+async function getJuryDecision(name1, name2) {
+  // 1) Cek cache duel — kalau sudah pernah, langsung pakai, TANPA loading UI.
+  const cached = getDuelCache(name1, name2);
+  if (cached) {
+    return { ...cached, fromCache: true };
+  }
+
+  // 2) Kalau kedua nama sudah punya power score tersimpan → keputusan instan lokal.
+  const s1 = getStoredScore(name1);
+  const s2 = getStoredScore(name2);
+  if (s1 !== null && s2 !== null) {
+    let winner;
+    if (s1 === s2) winner = Math.random() < 0.5 ? name1 : name2;
+    else winner = s1 > s2 ? name1 : name2;
+    const result = {
+      winner,
+      reason: `Keputusan instan dari data tersimpan: ${name1} (skor ${s1}) vs ${name2} (skor ${s2}).`,
+      providerLabel: 'Data Tersimpan (Lokal)',
+      power1: s1,
+      power2: s2,
+      fromCache: true,
+    };
+    saveDuelCache(name1, name2, result);
+    return result;
+  }
+
+  // 3) Belum ada data lengkap → panggil backend Vercel (dengan fallback multi-provider).
+  juriLoadingScreen.classList.remove('hidden');
+  vsBadge.classList.add('vs-fighting');
+  try {
+    const providerOrder = getProviderOrder();
+    const res = await fetch('/api/juri', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenger1: name1, challenger2: name2, providerOrder }),
+    });
+
+    if (!res.ok) throw new Error('API gagal: ' + res.status);
+    const data = await res.json();
+
+    // Update status cooldown provider berdasarkan hasil percobaan backend.
+    if (Array.isArray(data.failedProviders)) {
+      data.failedProviders.forEach(id => markProviderBusy(id));
+    }
+    if (data.providerId) clearProviderBusy(data.providerId);
+
+    const result = {
+      winner: data.winner,
+      reason: data.reason,
+      providerLabel: data.providerLabel || 'AI Juri',
+      power1: typeof data.power1 === 'number' ? data.power1 : null,
+      power2: typeof data.power2 === 'number' ? data.power2 : null,
+      fromCache: false,
+    };
+
+    // Simpan power score HANYA untuk nama yang belum pernah tercatat.
+    if (result.power1 !== null) setStoredScore(name1, result.power1);
+    if (result.power2 !== null) setStoredScore(name2, result.power2);
+
+    saveDuelCache(name1, name2, result);
+    return result;
+  } catch (err) {
+    // Ultimate fallback: semua provider gagal / error beruntun.
+    return {
+      winner: name1,
+      reason: 'Juri AI sedang pusing mikirin rumus matematika, tunggu 10 menit ya!',
+      providerLabel: 'Fallback (Offline)',
+      power1: null,
+      power2: null,
+      fromCache: false,
+      isUltimateFallback: true,
+    };
+  } finally {
+    juriLoadingScreen.classList.add('hidden');
+    vsBadge.classList.remove('vs-fighting');
+  }
+}
+
+/* =========================================================================
+   UPDATE HINT SKOR (championScore & challengerHint)
+   ========================================================================= */
+function updateChampionScoreDisplay() {
+  const s = getStoredScore(state.champion.name);
+  championScoreEl.textContent = s !== null ? `⚡ Skor kekuatan: ${s}` : '';
+}
+function updateChallengerHint(name) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) { challengerHint.textContent = ''; return; }
+  const s = getStoredScore(trimmed);
+  challengerHint.textContent = s !== null ? `⚡ Sudah pernah bertarung, skor: ${s}` : '';
+}
+
+/* =========================================================================
+   TIMER
+   ========================================================================= */
+function startTimer() {
+  const dur = parseInt(localStorage.getItem(TIMER_DURATION_KEY) || '60', 10);
+  state.timerRemaining = dur;
+  timerDisplay.textContent = state.timerRemaining;
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timerRemaining--;
+    timerDisplay.textContent = Math.max(0, state.timerRemaining);
+    if (state.timerRemaining <= 0) {
+      clearInterval(state.timerInterval);
+      goToFinis();
+    }
+  }, 1000);
+}
+function stopTimer() {
+  clearInterval(state.timerInterval);
+}
+
+/* =========================================================================
+   MODE SINGLEPLAYER
+   ========================================================================= */
+document.getElementById('btnGoSingle').addEventListener('click', () => {
+  document.getElementById('singleSetupName').value = localStorage.getItem(PLAYER_NAME_KEY) || '';
+  showScreen('singleplayer_screen');
+});
+document.getElementById('btnBackFromSingleSetup').addEventListener('click', () => showScreen('start_screen'));
+
+document.getElementById('btnStartSingle').addEventListener('click', () => {
+  const nameInput = document.getElementById('singleSetupName');
+  const pname = nameInput.value.trim();
+  if (pname) localStorage.setItem(PLAYER_NAME_KEY, pname);
+
+  state.mode = 'single';
+  state.champion = { name: 'Input Kosong', score: 0 };
+  updateChampionScoreDisplay();
+  championNameEl.textContent = state.champion.name;
+  challengerNameEl.textContent = '?';
+  challengerHint.textContent = '';
+  scoreDisplay.textContent = `Skor: 0`;
+  historyList.innerHTML = '';
+  resetRonde();
+
+  singleInputArea.classList.remove('hidden');
+  multiStep1Area.classList.add('hidden');
+  multiStep2Area.classList.add('hidden');
+
+  showScreen('play_screen');
+  startTimer();
+});
+
+singleChallengeInput.addEventListener('input', () => updateChallengerHint(singleChallengeInput.value));
+
+document.getElementById('btnSingleAttack').addEventListener('click', () => runSingleRound());
+singleChallengeInput.addEventListener('keydown', e => { if (e.key === 'Enter') runSingleRound(); });
+
+async function runSingleRound() {
+  if (state.roundBusy) return;
+  const challenger = singleChallengeInput.value.trim();
+  if (!challenger) { shakeInput(singleChallengeInput); return; }
+
+  state.roundBusy = true;
+  challengerNameEl.textContent = challenger;
+  resetRonde();
+
+  const decision = await getJuryDecision(state.champion.name, challenger);
+  renderDecision(state.champion.name, challenger, decision, cardChampion, cardChallenger);
+
+  const winnerIsChampion = normalizeName(decision.winner) === normalizeName(state.champion.name);
+  if (!winnerIsChampion) {
+    state.champion = { name: challenger, score: state.champion.score };
+  }
+  state.champion.score += 1;
+  scoreDisplay.textContent = `Skor: ${state.champion.score}`;
+  championNameEl.textContent = state.champion.name;
+  updateChampionScoreDisplay();
+
+  singleChallengeInput.value = '';
+  challengerHint.textContent = '';
+  state.roundBusy = false;
+}
+
+/* =========================================================================
+   MODE MULTIPLAYER (HOT-SEAT)
+   ========================================================================= */
+document.getElementById('btnGoMulti').addEventListener('click', () => showScreen('multiplayer_screen'));
+document.getElementById('btnBackFromMultiSetup').addEventListener('click', () => showScreen('start_screen'));
+
+document.getElementById('btnStartMulti').addEventListener('click', () => {
+  const n1 = document.getElementById('multiSetupName1').value.trim() || 'Player 1';
+  const n2 = document.getElementById('multiSetupName2').value.trim() || 'Player 2';
+
+  state.mode = 'multi';
+  state.nameP1 = n1; state.nameP2 = n2;
+  state.scoreP1 = 0; state.scoreP2 = 0;
+
+  championNameEl.textContent = n1;
+  challengerNameEl.textContent = n2;
+  championScoreEl.textContent = '';
+  challengerHint.textContent = '';
+  scoreDisplay.textContent = `${n1}: 0  |  ${n2}: 0`;
+  historyList.innerHTML = '';
+  resetRonde();
+
+  singleInputArea.classList.add('hidden');
+  multiStep2Area.classList.add('hidden');
+  multiStep1Area.classList.remove('hidden');
+  document.getElementById('multiStep1Label').textContent = `Giliran ${n1}`;
+
+  showScreen('play_screen');
+  startTimer();
+});
+
+document.getElementById('btnMultiLock1').addEventListener('click', () => {
+  const atk1 = multiAttackInput1.value.trim();
+  if (!atk1) { shakeInput(multiAttackInput1); return; }
+  // Sembunyikan form Player 1, tampilkan form Player 2 (anti-mengintip)
+  multiStep1Area.classList.add('hidden');
+  multiStep2Area.classList.remove('hidden');
+  document.getElementById('multiStep2Label').textContent = `Giliran ${state.nameP2}`;
+});
+
+document.getElementById('btnMultiAttack2').addEventListener('click', () => runMultiRound());
+
+async function runMultiRound() {
+  if (state.roundBusy) return;
+  const atk1 = multiAttackInput1.value.trim();
+  const atk2 = multiAttackInput2.value.trim();
+  if (!atk2) { shakeInput(multiAttackInput2); return; }
+
+  state.roundBusy = true;
+  championNameEl.textContent = atk1;
+  challengerNameEl.textContent = atk2;
+  resetRonde();
+
+  const decision = await getJuryDecision(atk1, atk2);
+  renderDecision(atk1, atk2, decision, cardChampion, cardChallenger);
+
+  if (normalizeName(decision.winner) === normalizeName(atk1)) state.scoreP1 += 1;
+  else state.scoreP2 += 1;
+  scoreDisplay.textContent = `${state.nameP1}: ${state.scoreP1}  |  ${state.nameP2}: ${state.scoreP2}`;
+
+  multiStep1Area.classList.remove('hidden');
+  multiStep2Area.classList.add('hidden');
+  multiAttackInput1.value = '';
+  multiAttackInput2.value = '';
+  document.getElementById('multiStep1Label').textContent = `Giliran ${state.nameP1}`;
+  state.roundBusy = false;
+}
+
+/* =========================================================================
+   RENDER HASIL KEPUTUSAN (dipakai kedua mode)
+   ========================================================================= */
+function renderDecision(nameA, nameB, decision, cardA, cardB) {
+  const winnerIsA = normalizeName(decision.winner) === normalizeName(nameA);
+  const winningCard = winnerIsA ? cardA : cardB;
+
+  winningCard.classList.add('ring-4', 'ring-gold', 'animate-impact-shake');
+  setTimeout(() => winningCard.classList.remove('animate-impact-shake'), 400);
+
+  resultWinnerName.textContent = decision.winner;
+  resultProvider.textContent = `Sumber: ${decision.providerLabel}`;
+  resultPanel.classList.remove('hidden');
+  resultPanel.classList.add('animate-fade-in-up');
+
+  typeWriter(decision.reason, resultReason);
+
+  appendHistory(nameA, nameB, decision.winner);
+}
+
+/* =========================================================================
+   FINIS SCREEN
+   ========================================================================= */
+function goToFinis() {
+  stopTimer();
+  const board = document.getElementById('finalScoreBoard');
+  const winnerText = document.getElementById('finalWinnerText');
+  board.innerHTML = '';
+
+  if (state.mode === 'single') {
+    winnerText.textContent = state.champion.name;
+    const line = document.createElement('p');
+    line.textContent = `Total kemenangan beruntun: ${state.champion.score}`;
+    board.appendChild(line);
+  } else {
+    let winnerName;
+    if (state.scoreP1 === state.scoreP2) winnerName = 'SERI!';
+    else winnerName = state.scoreP1 > state.scoreP2 ? state.nameP1 : state.nameP2;
+    winnerText.textContent = winnerName;
+    const l1 = document.createElement('p');
+    l1.textContent = `${state.nameP1}: ${state.scoreP1} poin`;
+    const l2 = document.createElement('p');
+    l2.textContent = `${state.nameP2}: ${state.scoreP2} poin`;
+    board.appendChild(l1);
+    board.appendChild(l2);
+  }
+  showScreen('finis_screen');
+}
+
+document.getElementById('btnPlayAgain').addEventListener('click', () => {
+  if (state.mode === 'single') showScreen('singleplayer_screen');
+  else showScreen('multiplayer_screen');
+});
+document.getElementById('btnBackToMenuFromFinis').addEventListener('click', () => showScreen('start_screen'));
+
+/* =========================================================================
+   SETTINGS SCREEN
+   ========================================================================= */
+document.getElementById('btnGoSettings').addEventListener('click', () => {
+  document.getElementById('settingsPlayerName').value = localStorage.getItem(PLAYER_NAME_KEY) || '';
+  document.getElementById('settingsTimerDuration').value = localStorage.getItem(TIMER_DURATION_KEY) || '60';
+  showScreen('settings_screen');
+});
+document.getElementById('btnBackFromSettings').addEventListener('click', () => showScreen('start_screen'));
+document.getElementById('settingsPlayerName').addEventListener('change', e => {
+  localStorage.setItem(PLAYER_NAME_KEY, e.target.value.trim());
+});
+document.getElementById('settingsTimerDuration').addEventListener('change', e => {
+  localStorage.setItem(TIMER_DURATION_KEY, e.target.value);
+});
+
+/* =========================================================================
+   INISIALISASI
+   ========================================================================= */
+initTheme();
+showScreen('start_screen');
+</script>
 </body>
 </html>

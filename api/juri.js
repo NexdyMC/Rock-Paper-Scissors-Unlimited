@@ -16,11 +16,13 @@
 //   AIAPI_KEY_1 = key Gemini (format AIzaSy..., dari https://aistudio.google.com/apikey)
 //   AIAPI_KEY_2 = key Groq #1
 //   AIAPI_KEY_3 = key Groq #2
+//   AIAPI_KEY_4 = key Groq #3
 // -----------------------------------------------------------------------
 const PROVIDERS = [
   { id: "gemini", label: "Gemini", type: "gemini", apiKey: process.env.AIAPI_KEY_1, model: "gemini-2.5-flash-lite" },
-  { id: "groq-1", label: "Groq (Key 1)", type: "groq", apiKey: process.env.AIAPI_KEY_2, model: "openai/gpt-oss-120b" },
-  { id: "groq-2", label: "Groq (Key 2)", type: "groq", apiKey: process.env.AIAPI_KEY_3, model: "openai/gpt-oss-120b" },
+  { id: "groq-1", label: "Groq (Key 1)", type: "groq", apiKey: process.env.AIAPI_KEY_2, model: "openai/gpt-oss-20b" },
+  { id: "groq-2", label: "Groq (Key 2)", type: "groq", apiKey: process.env.AIAPI_KEY_3, model: "openai/gpt-oss-20b" },
+  { id: "groq-3", label: "Groq (Key 3)", type: "groq", apiKey: process.env.AIAPI_KEY_4, model: "qwen/qwen3.8-27b" },
 ];
 
 // -----------------------------------------------------------------------

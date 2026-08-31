@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": ">=22.x"
+  },
   "name": "batu-gunting-kertas-unlimited",
   "version": "1.0.0",
   "private": true,

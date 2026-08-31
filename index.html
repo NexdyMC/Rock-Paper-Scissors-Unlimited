@@ -18,7 +18,54 @@
 
 <!-- ===== Tailwind CDN ===== -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="js/tailwind.config.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          corner1: '#ff3b5c',
+          corner2: '#3ba7ff',
+          gold: '#ffd166',
+        },
+        fontFamily: {
+          display: ['Anton', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        keyframes: {
+          shakeX: {
+            '0%, 100%': { transform: 'translateX(0)' },
+            '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
+            '20%, 40%, 60%, 80%': { transform: 'translateX(8px)' },
+          },
+          fadeInUp: {
+            '0%': { opacity: '0', transform: 'translateY(20px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+          popIn: {
+            '0%': { opacity: '0', transform: 'scale(.6) rotate(-8deg)' },
+            '70%': { opacity: '1', transform: 'scale(1.08) rotate(2deg)' },
+            '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+          },
+          impactShake: {
+            '0%, 100%': { transform: 'translate(0,0) rotate(0)' },
+            '20%': { transform: 'translate(-6px,2px) rotate(-1deg)' },
+            '40%': { transform: 'translate(6px,-2px) rotate(1deg)' },
+            '60%': { transform: 'translate(-4px,1px) rotate(-1deg)' },
+            '80%': { transform: 'translate(4px,-1px) rotate(1deg)' },
+          },
+        },
+        animation: {
+          shake: 'shakeX .5s ease-in-out',
+          'fade-in-up': 'fadeInUp .5s ease-out forwards',
+          'pop-in': 'popIn .5s cubic-bezier(.34,1.56,.64,1) forwards',
+          'impact-shake': 'impactShake .4s ease-in-out',
+        },
+      },
+    },
+  };
+</script>
 
 <style>
   html, body { height: 100%; }
@@ -69,6 +116,18 @@
 
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-thumb { background: rgba(255,209,102,.5); border-radius: 4px; }
+
+  /* Scrollbar elegan (dark mode) khusus kontainer Riwayat Pertarungan di finis_screen */
+  .elegant-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(255,209,102,.55) transparent; }
+  .elegant-scrollbar::-webkit-scrollbar { width: 6px; }
+  .elegant-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .elegant-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(255,209,102,.75), rgba(255,209,102,.35));
+    border-radius: 999px;
+  }
+  .elegant-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(255,209,102,.95), rgba(255,209,102,.55));
+  }
 
   .toast {
     position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
@@ -211,7 +270,7 @@
     <!-- Tombol Kembali ke Beranda: pojok kiri atas play_screen -->
     <button id="btnBackToHomeFromPlay" title="Kembali ke Beranda"
       class="absolute top-0 left-0 w-9 h-9 rounded-full bg-white/80 dark:bg-neutral-900/80 border border-neutral-300 dark:border-neutral-700 flex justify-center items-center gap-2 text-lg shadow hover:scale-105 active:scale-95 transition z-20">
-      <i class="fa-solid fa-arrow-left "></i>Back
+      <i class="fa-solid fa-arrow-left"></i>
     </button>
 
     <!-- Timer (arcade, singleplayer) & Skor -->
@@ -268,7 +327,7 @@
       <input id="multiAttackInput1" type="text" placeholder="Serangan Player 1..."
         class="w-full px-4 py-3 rounded-xl border-2 border-corner1 bg-white dark:bg-neutral-900 outline-none text-center mb-2">
       <button id="btnMultiLock1" class="w-full py-3 rounded-xl display-font text-xl bg-corner1 text-white active:scale-95 transition flex justify-center items-center gap-2">
-        <i class="fa-solid fa-lock"></i> Kunci / Lanjut
+        <i class="fa-solid fa-lock"></i> Kunci Input / Lanjut
       </button>
     </div>
 
@@ -300,6 +359,9 @@
       <p class="mono-font text-xs uppercase text-neutral-500 mb-2 flex items-center gap-2"><i class="fa-solid fa-list"></i> Riwayat Ronde</p>
       <ul id="historyList" class="mono-font text-xs space-y-1 max-h-40 overflow-y-auto pr-1"></ul>
     </div>
+    <div class="text-center">
+      <button id="btnBackFromMultiSetup" class="text-sm text-neutral-500 hover:underline">← Kembali ke menu</button>
+    </div>
   </section>
 
   <!-- ===================================================== -->
@@ -313,7 +375,9 @@
     <!-- Riwayat Ronde (dibaca dari array riwayatGame, dirender via createElement+textContent) -->
     <div class="max-w-lg mx-auto mb-8 text-left">
       <p class="mono-font text-xs uppercase text-neutral-500 mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pertarungan</p>
-      <ul id="finisHistoryList" class="mono-font text-xs space-y-2 max-h-64 overflow-y-auto pr-1"></ul>
+      <div id="finisHistoryContainer" class="max-h-[300px] overflow-y-auto pr-1 elegant-scrollbar">
+        <ul id="finisHistoryList" class="mono-font text-xs space-y-2"></ul>
+      </div>
     </div>
 
     <div class="max-w-sm mx-auto grid gap-3">
@@ -791,9 +855,9 @@ function startChessTimer(player) {
     renderChessClocks();
 
     if (state.timeP1 <= 0) {
-      triggerChessTimeOut('p1');
+      triggerChessTimeOut();
     } else if (state.timeP2 <= 0) {
-      triggerChessTimeOut('p2');
+      triggerChessTimeOut();
     }
   }, 1000);
 }
@@ -810,13 +874,13 @@ function stopChessClocks() {
   clockP1El.classList.add('hidden');
   clockP2El.classList.add('hidden');
 }
-// Pemain yang waktunya habis SAAT giliran dia mengetik langsung kalah.
-function triggerChessTimeOut(loserKey) {
+// Saat salah satu jam pemain menyentuh 00:00, pertandingan langsung berhenti.
+// Pemenang TIDAK ditentukan oleh siapa yang kehabisan waktu — murni dari
+// perbandingan skor akhir (scoreP1 vs scoreP2), lihat goToFinisTimeOut().
+function triggerChessTimeOut() {
   clearInterval(state.chessInterval);
   state.chessInterval = null;
-  const loserName = loserKey === 'p1' ? state.nameP1 : state.nameP2;
-  const winnerName = loserKey === 'p1' ? state.nameP2 : state.nameP1;
-  goToFinisTimeOut(loserName, winnerName);
+  goToFinisTimeOut();
 }
 
 /* =========================================================================
@@ -1107,10 +1171,16 @@ function goToFinis() {
     line.textContent = `Total kemenangan beruntun: ${state.champion.score}`;
     board.appendChild(line);
   } else {
-    let winnerName;
-    if (state.scoreP1 === state.scoreP2) winnerName = 'SERI!';
-    else winnerName = state.scoreP1 > state.scoreP2 ? state.nameP1 : state.nameP2;
-    winnerText.textContent = winnerName;
+    const reasonLine = document.createElement('p');
+    if (state.scoreP1 === state.scoreP2) {
+      winnerText.textContent = 'PERTANDINGAN SERI!';
+      reasonLine.textContent = 'Waktu Habis! Kedua pemain sama-sama kuat dan memperoleh poin yang sama.';
+    } else {
+      const winnerName = state.scoreP1 > state.scoreP2 ? state.nameP1 : state.nameP2;
+      winnerText.textContent = winnerName;
+      reasonLine.textContent = `Waktu Habis! ${winnerName} menang dengan skor tertinggi!`;
+    }
+    board.appendChild(reasonLine);
     const l1 = document.createElement('p');
     l1.textContent = `${state.nameP1}: ${state.scoreP1} poin`;
     const l2 = document.createElement('p');
@@ -1122,8 +1192,10 @@ function goToFinis() {
   showScreen('finis_screen');
 }
 
-// Finis khusus Time Out Chess Clock: satu pemain kehabisan waktu saat mengetik.
-function goToFinisTimeOut(loserName, winnerName) {
+// Finis khusus Time Out Chess Clock: dipicu saat salah satu jam pemain
+// menyentuh 00:00. Pemenang Utama ditentukan MURNI dari perbandingan poin
+// terakhir (scoreP1 vs scoreP2) — bukan dari siapa yang kehabisan waktu.
+function goToFinisTimeOut() {
   stopTimer();
   stopChessClocks();
 
@@ -1133,11 +1205,20 @@ function goToFinisTimeOut(loserName, winnerName) {
   board.innerHTML = '';
 
   titleEl.textContent = 'WAKTU HABIS!';
-  winnerText.textContent = winnerName;
 
-  const line = document.createElement('p');
-  line.textContent = `${winnerName} menang karena ${loserName} kelamaan mikir!`;
-  board.appendChild(line);
+  const reasonLine = document.createElement('p');
+
+  if (state.scoreP1 === state.scoreP2) {
+    winnerText.textContent = 'PERTANDINGAN SERI!';
+    reasonLine.textContent = 'Waktu Habis! Kedua pemain sama-sama kuat dan memperoleh poin yang sama.';
+  } else if (state.scoreP1 > state.scoreP2) {
+    winnerText.textContent = state.nameP1;
+    reasonLine.textContent = `Waktu Habis! ${state.nameP1} menang dengan skor tertinggi!`;
+  } else {
+    winnerText.textContent = state.nameP2;
+    reasonLine.textContent = `Waktu Habis! ${state.nameP2} menang dengan skor tertinggi!`;
+  }
+  board.appendChild(reasonLine);
 
   const l1 = document.createElement('p');
   l1.textContent = `${state.nameP1}: ${state.scoreP1} poin`;
@@ -1262,7 +1343,7 @@ function refreshAOS() {
 }
 </script>
 
-<!-- ===== AOS (Animate On Scroll) JS — dimuat sebelum penutup body ===== -->
+<!-- ===== AOS (Animate On Scroll) JS — cd at sebelum penutup body ===== -->
 <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 <script>
   AOS.init({ duration: 600, once: false, mirror: true });
